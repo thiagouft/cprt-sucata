@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Usuário do sistema. Cada usuário possui um perfil (role) que concede permissões.
+model Usuario {
+  id              String   @id @default(uuid()) @db.Uuid
+  login           String   @unique
+  nome            String
+  senhaHash       String   @map("senha_hash")
+  ativo           Boolean  @default(true)
+  /// Obrigatório trocar a senha no próximo acesso (usuário novo ou senha redefinida pelo master)
+  deveTrocarSenha Boolean  @default(false) @map("deve_trocar_senha")
+  perfilId        String   @map("perfil_id") @db.Uuid
+  perfil          Perfil   @relation(fields: [perfilId], references: [id], onDelete: Restrict)
+  criadoEm        DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm    DateTime @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  operacoes  Operacao[]
+  arquivos   Arquivo[]
+  auditorias Auditoria[]
+
+  @@index([perfilId])
+  @@map("usuarios")
+}
+
+/// Perfil de acesso (RBAC). Perfis "sistema" não podem ser removidos.
+model Perfil {
+  id        String   @id @default(uuid()) @db.Uuid
+  nome      String   @unique
+  descricao String   @default("")
+  sistema   Boolean  @default(false)
+  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  permissoes PerfilPermissao[]
+  usuarios   Usuario[]
+
+  @@map("perfis")
+}
+
+/// Catálogo de permissões (sincronizado a partir do código no startup/seed).
+model Permissao {
+  chave     String @id
+  menu      String
+  descricao String
+
+  perfis PerfilPermissao[]
+
+  @@map("permissoes")
+}
+
+model PerfilPermissao {
+  perfilId       String    @map("perfil_id") @db.Uuid
+  permissaoChave String    @map("permissao_chave")
+  perfil         Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  permissao      Permissao @relation(fields: [permissaoChave], references: [chave], onDelete: Cascade)
+
+  @@id([perfilId, permissaoChave])
+  @@map("perfis_permissoes")
+}
+
+/// Operação (ticket). O documento completo fica em `dados`; as colunas
+/// denormalizadas existem para filtros e relatórios em SQL.
+model Operacao {
+  id           String   @id
+  dados        Json
+  num          String?
+  tipo         String
+  cliente      String?
+  controlador  String?
+  criadoEm     BigInt?  @map("criado_em")
+  atualizadoEm BigInt?  @map("atualizado_em")
+  criadoPorId  String?  @map("criado_por") @db.Uuid
+  criadoPor    Usuario? @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+  gravadoEm    DateTime @default(now()) @map("gravado_em") @db.Timestamptz
+
+  @@index([num])
+  @@index([tipo])
+  @@index([cliente])
+  @@index([atualizadoEm(sort: Desc)])
+  @@map("operacoes")
+}
+
+/// Fotos e PDFs anexados às etapas.
+model Arquivo {
+  id           String   @id @default(uuid()) @db.Uuid
+  mime         String
+  tamanho      Int
+  conteudo     Bytes
+  enviadoPorId String?  @map("enviado_por") @db.Uuid
+  enviadoPor   Usuario? @relation(fields: [enviadoPorId], references: [id], onDelete: SetNull)
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@map("arquivos")
+}
+
+/// Configuração global (sucateiros, preços, textos de NF e MTR).
+model Configuracao {
+  chave         String   @id
+  dados         Json
+  atualizadoEm  DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz
+  atualizadoPor String?  @map("atualizado_por") @db.Uuid
+
+  @@map("configuracao")
+}
+
+enum AcaoAuditoria {
+  gravar
+  excluir
+}
+
+/// Histórico de alterações das operações.
+model Auditoria {
+  id         Int           @id @default(autoincrement())
+  operacaoId String        @map("operacao_id")
+  acao       AcaoAuditoria
+  usuarioId  String?       @map("usuario_id") @db.Uuid
+  usuario    Usuario?      @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  dados      Json?
+  em         DateTime      @default(now()) @db.Timestamptz
+
+  @@index([operacaoId, em(sort: Desc)])
+  @@map("auditoria")
+}

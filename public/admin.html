@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usuários e permissões · Controle de Sucata</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF0F3;--surface:#fff;--surface2:#F5F7F9;--ink:#0E1A2B;--muted:#586577;--line:#D3D9E1;--hdr:#0E1A2B;--accent:#F2A900;--primary:#16355F;--bad:#C62F2F;--bad-bg:#FBE8E8;--ok:#1E7A46;--ok-bg:#E3F4EA;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0A121E;--surface:#121D2D;--surface2:#182539;--ink:#E8EDF3;--muted:#93A0B2;--line:#26374D;--hdr:#070D16;--primary:#3B7BD0;--bad:#F27B7B;--bad-bg:#2D1717;--ok:#6FD39A;--ok-bg:#12281D;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif}
+header{background:var(--hdr);color:#F2F5F9;border-bottom:3px solid var(--accent);padding:12px 16px;display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:8px;background:var(--accent);color:#1A1300;display:grid;place-items:center;font:700 20px 'Barlow Condensed',sans-serif;flex:none}
+h1{margin:0;font:700 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;flex:1}
+h2{margin:0 0 4px;font-size:18px}
+header a.link+a.link{margin-left:-4px}
+a.link{color:#F2F5F9;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:8px 12px;text-decoration:none;font-weight:600;font-size:14px}
+main{max-width:980px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:10px;padding:9px 16px;font:600 15px Barlow,sans-serif;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--primary);color:#fff;border-color:var(--primary)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:middle}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.table-wrap{overflow-x:auto}
+.tag{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12.5px;font-weight:700;background:var(--surface2);border:1px solid var(--line)}
+.tag.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.tag.off{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+button.btn{border:0;background:var(--primary);color:#fff;border-radius:10px;min-height:40px;padding:0 16px;font:600 15px Barlow,sans-serif;cursor:pointer}
+button.btn.sec{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+button.btn.danger{background:var(--bad);color:#fff}
+button.btn.sm{min-height:34px;padding:0 12px;font-size:14px}
+button:disabled{opacity:.5;cursor:not-allowed}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:18px;width:min(520px,calc(100vw - 24px));max-height:90vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.grid{display:grid;gap:12px}
+label{font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
+input[type=text],input[type=password],select,textarea{width:100%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px;min-height:44px;font:inherit;font-size:16px}
+.perm-group{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface2)}
+.perm-group b{display:block;margin-bottom:6px}
+.perm{display:flex;gap:8px;align-items:flex-start;font-size:14.5px;margin:6px 0;color:var(--ink);font-weight:400}
+.perm input{margin-top:3px;width:18px;height:18px;flex:none}
+.err{display:none;border:1px solid var(--bad);background:var(--bad-bg);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:10px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14.5px;display:none;z-index:50}
+</style>
+</head>
+<body>
+<header>
+  <div class="mark">SC</div>
+  <h1>Usuários e permissões</h1>
+  <a class="link" href="/">Voltar ao app</a>
+  <a class="link" href="/trocar-senha">Alterar senha</a>
+  <a class="link" href="/logout">Sair</a>
+</header>
+<main>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-users" aria-selected="true" hidden>Usuários</button>
+    <button role="tab" id="tab-roles" aria-selected="false" hidden>Perfis</button>
+  </div>
+  <section id="panel-users" hidden>
+    <div class="bar">
+      <div><h2>Usuários</h2><div class="muted">Quem pode entrar no sistema e qual perfil de acesso possui.</div></div>
+      <button class="btn" id="new-user" hidden>Novo usuário</button>
+    </div>
+    <div class="card table-wrap"><table>
+      <thead><tr><th>Nome</th><th>Login</th><th>Perfil</th><th>Situação</th><th></th></tr></thead>
+      <tbody id="users-body"></tbody>
+    </table></div>
+  </section>
+  <section id="panel-roles" hidden>
+    <div class="bar">
+      <div><h2>Perfis</h2><div class="muted">Cada perfil define quais menus e ações ficam liberados.</div></div>
+      <button class="btn" id="new-role" hidden>Novo perfil</button>
+    </div>
+    <div id="roles-list"></div>
+  </section>
+</main>
+
+<dialog id="dlg-user">
+  <form method="dialog" id="form-user" class="grid" autocomplete="off">
+    <h2 id="user-title">Novo usuário</h2>
+    <div class="err" id="user-err" role="alert"></div>
+    <div><label for="u-nome">Nome completo</label><input type="text" id="u-nome" required minlength="2"></div>
+    <div><label for="u-login">Login</label><input type="text" id="u-login" required pattern="[A-Za-z0-9._\-]{3,40}" autocapitalize="none"></div>
+    <div><label for="u-perfil">Perfil</label><select id="u-perfil" required></select></div>
+    <div id="u-senha-wrap"><label for="u-senha">Senha inicial (mín. 8 caracteres)</label><input type="password" id="u-senha" minlength="8" autocomplete="new-password"><div class="muted" style="margin-top:4px">No primeiro acesso o usuário será obrigado a trocar esta senha.</div></div>
+    <div id="u-ativo-wrap" hidden><label class="perm"><input type="checkbox" id="u-ativo"> Usuário ativo (pode entrar)</label></div>
+    <div class="actions"><button type="button" class="btn sec" id="user-cancel">Cancelar</button><button type="submit" class="btn" id="user-save">Salvar</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-temp">
+  <div class="grid">
+    <h2>Senha temporária</h2>
+    <div class="muted">Passe esta senha ao usuário <b id="tmp-login"></b>. Ela aparece só agora e precisa ser trocada no próximo acesso.</div>
+    <div class="card" style="font:700 24px ui-monospace,Consolas,monospace;text-align:center;letter-spacing:.06em;user-select:all" id="tmp-pass"></div>
+    <div class="actions"><button type="button" class="btn sec" id="temp-copy">Copiar</button><button type="button" class="btn" id="temp-close">Fechar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlg-role">
+  <form method="dialog" id="form-role" class="grid" autocomplete="off">
+    <h2 id="role-title">Novo perfil</h2>
+    <div class="err" id="role-err" role="alert"></div>
+    <div><label for="r-nome">Nome do perfil</label><input type="text" id="r-nome" required minlength="2" maxlength="60"></div>
+    <div><label for="r-desc">Descrição</label><input type="text" id="r-desc" maxlength="200"></div>
+    <div id="r-perms" class="grid"></div>
+    <div class="actions"><button type="button" class="btn sec" id="role-cancel">Cancelar</button><button type="submit" class="btn" id="role-save">Salvar</button></div>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+<script src="/admin.js"></script>
+</body>
+</html>

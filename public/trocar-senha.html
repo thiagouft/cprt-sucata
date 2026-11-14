@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trocar senha · Controle de Sucata</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF0F3;--surface:#fff;--ink:#0E1A2B;--muted:#586577;--line:#D3D9E1;--hdr:#0E1A2B;--accent:#F2A900;--primary:#16355F;--bad:#C62F2F;--bad-bg:#FBE8E8;--note-bg:#FFF4D6;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0A121E;--surface:#121D2D;--ink:#E8EDF3;--muted:#93A0B2;--line:#26374D;--hdr:#070D16;--primary:#3B7BD0;--bad:#F27B7B;--bad-bg:#2D1717;--note-bg:#2B2410;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;display:flex;flex-direction:column}
+header{background:var(--hdr);color:#F2F5F9;border-bottom:3px solid var(--accent);padding:14px 16px;display:flex;gap:12px;align-items:center}
+.mark{width:40px;height:40px;border-radius:8px;background:var(--accent);color:#1A1300;display:grid;place-items:center;font:700 20px 'Barlow Condensed',sans-serif}
+h1{margin:0;font:700 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;flex:1}
+header a{color:#F2F5F9;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:8px 12px;text-decoration:none;font-weight:600;font-size:14px}
+main{flex:1;display:grid;place-items:center;padding:16px}
+form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;width:100%;max-width:400px;display:grid;gap:14px}
+h2{margin:0;font-size:19px}
+label{font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
+input{width:100%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:11px 12px;min-height:46px;font:inherit;font-size:16px}
+button{border:0;background:var(--primary);color:#fff;border-radius:12px;min-height:46px;font:600 16px Barlow,sans-serif;cursor:pointer}
+button:disabled{opacity:.6}
+.note{background:var(--note-bg);border-radius:10px;padding:10px 12px;font-size:14px;display:none}
+.err{display:none;border:1px solid var(--bad);background:var(--bad-bg);border-radius:10px;padding:10px 12px;font-size:14px}
+.hint{font-size:13px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<header><div class="mark">SC</div><h1>Controle de Sucata</h1><a href="/logout">Sair</a></header>
+<main>
+  <form id="f" autocomplete="off">
+    <h2>Alterar senha</h2>
+    <div class="note" id="forced">Por segurança, defina uma nova senha para continuar usando o sistema.</div>
+    <div class="err" id="err" role="alert"></div>
+    <div><label for="atual">Senha atual</label><input id="atual" type="password" autocomplete="current-password" required autofocus></div>
+    <div><label for="nova">Nova senha</label><input id="nova" type="password" autocomplete="new-password" minlength="8" required><div class="hint">Mínimo de 8 caracteres, diferente da atual.</div></div>
+    <div><label for="conf">Repita a nova senha</label><input id="conf" type="password" autocomplete="new-password" minlength="8" required></div>
+    <button type="submit" id="btn">Salvar nova senha</button>
+  </form>
+</main>
+<script src="/trocar-senha.js"></script>
+</body>
+</html>

@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Controle de Sucata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idêntico ao Controle de Aço CPRT: cabeçalho escuro fixo com faixa âmbar, coluna única de trabalho, navegação inferior de 3 abas. */
+:root{
+  --font-d:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-b:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --bg:#EDF0F3; --surface:#FFFFFF; --surface2:#F3F5F8; --ink:#0E1A2B; --muted:#586577; --line:#D3D9E1;
+  --hdr:#0E1A2B; --hdr-ink:#F2F5F9; --accent:#F2A900; --accent-ink:#1A1300;
+  --primary:#16355F; --primary-ink:#FFFFFF;
+  --ret:#B5520A; --ret-bg:#FCEFE3; --mob:#1C5DB8; --mob-bg:#E5EEFB;
+  --ok:#1B8A4B; --ok-bg:#E3F4EA; --bad:#C62F2F; --bad-bg:#FBE8E8; --warn:#8A5A00; --warn-bg:#FFF1CC;
+  --shadow:0 1px 2px rgba(14,26,43,.06),0 4px 14px rgba(14,26,43,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
+    --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
+    --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A;
+    --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
+  --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
+  --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A;
+  --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column}
+header.top{background:var(--hdr);color:var(--hdr-ink);padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;position:sticky;top:0;z-index:20;border-bottom:3px solid var(--accent)}
+.top-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.mark{width:40px;height:40px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--font-d);font-weight:700;font-size:20px;letter-spacing:.02em;flex:none}
+.top h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;font-family:var(--font-d);font-weight:700;font-size:20px;letter-spacing:.04em;text-transform:uppercase;line-height:1.05}
+.top .sub{font-size:12.5px;opacity:.72;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .grow{flex:1;min-width:0}
+@media(max-width:440px){.top h1{font-size:17px;letter-spacing:.02em}.top-in{gap:8px}.mark{width:36px;height:36px}.iconbtn{width:38px;height:38px}}
+.iconbtn{background:transparent;border:1px solid rgba(255,255,255,.22);color:var(--hdr-ink);width:40px;height:40px;border-radius:10px;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn[hidden]{display:none}
+.iconbtn:hover{background:rgba(255,255,255,.1)}
+main{flex:1;width:100%;max-width:760px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px}
+.tab{border:0;background:transparent;border-radius:12px;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;position:relative}
+a.tab{text-decoration:none}
+.tab[aria-current="page"]{color:var(--primary);background:var(--surface2)}
+:root[data-theme="dark"] .tab[aria-current="page"]{color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab[aria-current="page"]{color:var(--ink)}}
+.tab .badge{position:absolute;top:3px;right:calc(50% - 24px);background:var(--accent);color:var(--accent-ink);border-radius:99px;font-size:11px;font-weight:700;padding:0 6px;min-width:18px;text-align:center}
+h2.sec{font-family:var(--font-d);font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;font-weight:700;display:flex;align-items:center;gap:8px}
+h2.sec .n{background:var(--ink);color:var(--surface);width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:13px;letter-spacing:0}
+h2.sec.ok .n{background:var(--ok);color:#fff}
+h2.sec .n svg{width:14px;height:14px;stroke-width:3.2}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.pad{padding:16px}
+.ops{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:560px){.ops{grid-template-columns:1fr 1fr}}
+.op{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:18px;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);min-height:132px}
+.op .tt{font-family:var(--font-d);font-size:28px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;line-height:1}
+.op .dd{color:var(--muted);font-size:14.5px}
+.op .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.op.ret .ico{background:var(--ret-bg);color:var(--ret)} .op.ret .tt{color:var(--ret)}
+.op.mob .ico{background:var(--mob-bg);color:var(--mob)} .op.mob .tt{color:var(--mob)}
+.op.ret:hover,.op.ret:focus-visible{border-color:var(--ret)} .op.mob:hover,.op.mob:focus-visible{border-color:var(--mob)}
+.opbar{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);border-left-width:6px}
+.opbar.ret{border-left-color:var(--ret)} .opbar.mob{border-left-color:var(--mob)}
+.opbar .t{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.opbar.ret .t{color:var(--ret)} .opbar.mob .t{color:var(--mob)}
+.opbar .s{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer;min-height:46px;text-decoration:none}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.acc{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.acc:hover{filter:brightness(1.05)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{min-height:38px;padding:7px 12px;font-size:14px;border-radius:10px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.prog{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:13.5px;color:var(--muted);font-weight:600}
+.prog .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .25s}
+.tiles{display:grid;gap:12px}
+.tile{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:12px;align-items:center}
+@media(min-width:560px){.tile{grid-template-columns:132px 1fr}}
+.tile.ok{border-color:var(--ok)}
+.tile.err{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad-bg)}
+.tile.lock{opacity:.55}
+.shot{aspect-ratio:1/1;border-radius:10px;background:var(--surface2);border:1.5px dashed var(--line);display:grid;place-items:center;color:var(--muted);overflow:hidden;position:relative}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.shot img.broken{visibility:hidden}
+.tile h3{margin:0;font-family:var(--font-d);font-size:21px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:8px;line-height:1.1}
+.tile p{margin:2px 0 10px;color:var(--muted);font-size:13.5px;overflow-wrap:anywhere}
+.tile .rd{font-family:var(--font-d);font-size:30px;font-weight:700;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;margin:2px 0 8px}
+.tile .rd small{font-size:15px;color:var(--muted);font-weight:600}
+.tile .btns{display:flex;gap:8px;flex-wrap:wrap}
+.chk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ok);color:#fff;flex:none}
+.chk svg{width:13px;height:13px;stroke-width:3.2}
+.spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--primary);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}.prog .bar i{transition:none}}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+@media(max-width:380px){.grid{grid-template-columns:1fr}}
+.f label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.f label .rq{color:var(--bad)}
+.f input,.f select,.f textarea{width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;min-height:46px;font-size:16px}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 25%,transparent)}
+.f.err input{border-color:var(--bad);background:var(--bad-bg)}
+.f .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+.f .em{font-size:12.5px;color:var(--bad);margin-top:4px;font-weight:600}
+.plate{font-family:var(--font-d);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+input.plate{font-size:24px!important;text-align:center}
+.calc{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
+.calc .k{font-size:12.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.calc .v{font-family:var(--font-d);font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.calc .u{font-size:15px;color:var(--muted);font-weight:600;margin-left:3px}
+.calc div{min-width:96px}
+.calc .neg .v{color:var(--bad)}
+.calc .hot .v{color:var(--ok)}
+.calc-t{font-family:var(--font-d);font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 8px}
+.alert{border-radius:12px;padding:12px 14px;border:1px solid var(--bad);background:var(--bad-bg);color:var(--ink);font-size:14.5px;margin-top:12px}
+.alert b{color:var(--bad)}
+.alert.warn{border-color:var(--warn);background:var(--warn-bg)}
+.alert.warn b{color:var(--warn)}
+.alert ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.alert li{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.alert li span{flex:1;min-width:180px}
+.note{border-radius:12px;padding:10px 14px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-size:13.5px}
+.note.wait{border-color:var(--warn);background:var(--warn-bg);color:var(--ink)}
+.mt{margin-top:14px}
+.sticky-cta{margin-top:20px;display:grid;gap:10px}
+.done{text-align:center;padding:28px 18px;margin-top:12px}
+.done .big{width:76px;height:76px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:0 auto 14px}
+.done .big svg{width:40px;height:40px;stroke-width:3}
+.done h2{font-family:var(--font-d);font-size:30px;margin:0;text-transform:uppercase;letter-spacing:.04em}
+.proto{display:inline-block;margin:12px 0 4px;padding:8px 16px;border-radius:10px;border:1.5px dashed var(--muted);font-family:var(--font-d);font-size:28px;font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;margin:0;font-size:15px;text-align:left}
+.dl dt{color:var(--muted);font-weight:600;font-size:13.5px}
+.dl dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.toolbar{display:grid;gap:10px;margin-bottom:12px}
+.search{position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);width:20px;height:20px}
+.search input{width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px 11px 40px;min-height:46px;font-size:16px;text-transform:uppercase}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 14px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.rec{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:10px}
+.rec:hover{border-color:var(--muted)}
+.rec.w{border-left:6px solid var(--accent)}
+.rec.b{border-left:6px solid var(--bad)}
+.rec .th{width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--surface2);display:grid;place-items:center;color:var(--muted)}
+.rec .th img{width:100%;height:100%;object-fit:cover;display:block}
+.rec .l1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rec .pr{font-family:var(--font-d);font-weight:700;font-size:18px;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.rec .l2{font-size:14px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere;display:block}
+.rec .kg{text-align:right;font-family:var(--font-d);font-weight:700;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.rec .kg small{display:block;font-family:var(--font-b);font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
+.pill{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.pill.ret{background:var(--ret-bg);color:var(--ret)} .pill.mob{background:var(--mob-bg);color:var(--mob)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.wait{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.imp{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.pill.demo{background:repeating-linear-gradient(45deg,var(--warn-bg),var(--warn-bg) 5px,transparent 5px,transparent 10px);color:var(--warn);border:1px solid var(--warn)}
+.empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.empty .ei{width:56px;height:56px;border-radius:16px;background:var(--surface2);display:grid;place-items:center;margin:0 auto 12px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:560px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{padding:14px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.kpi .v{font-family:var(--font-d);font-size:38px;font-weight:700;line-height:1.05;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:16px;color:var(--muted);font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:8px;height:190px;padding:22px 4px 0;border-bottom:2px solid var(--line)}
+.chart .day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.chart .bars{display:flex;align-items:flex-end;gap:3px;height:100%;width:100%;justify-content:center}
+.chart .b{flex:1;max-width:26px;border-radius:5px 5px 0 0;min-height:0;position:relative}
+.chart .b.ret{background:var(--ret)} .chart .b.mob{background:var(--mob)}
+.chart .b span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.xl{display:flex;gap:8px;padding:6px 4px 0}
+.xl div{flex:1;text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+.lsvg{width:100%;height:auto;display:block;overflow:visible}
+.lcur{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.lcur-t{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.lchip{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--muted)}
+.lchip i{width:8px;height:8px;border-radius:50%;flex:none}
+.lchip>span{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0}
+.lchip b{font-family:var(--font-b);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.lchip em{font-style:normal;font-size:12px;font-weight:500}
+.lchip em.up{color:var(--ok)}.lchip em.dn{color:var(--bad)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted);font-weight:600;margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tbl{width:100%;border-collapse:collapse;font-size:14.5px;font-variant-numeric:tabular-nums}
+.tbl th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 6px;border-bottom:1px solid var(--line)}
+.tbl th.r,.tbl td.r{text-align:right}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(5,10,18,.62);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:760px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:760px){.overlay{align-items:center}.sheet{border-radius:20px;max-height:88%}}
+.sheet .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sheet .hd h3{margin:0;font-family:var(--font-d);font-size:26px;text-transform:uppercase;letter-spacing:.04em;flex:1}
+.photos3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:560px){.photos3{grid-template-columns:repeat(4,1fr)}}
+.photos3 figure{margin:0}
+.photos3 img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in;background:var(--surface2)}
+.photos3 figcaption{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:5px;text-align:center}
+.lightbox{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:12px}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+.lightbox .iconbtn{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;background:rgba(0,0,0,.5)}
+textarea.exp{width:100%;min-height:180px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);padding:10px}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:12px;font-weight:600;font-size:14.5px;z-index:80;max-width:90%;box-shadow:var(--shadow)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1}
+.muted{color:var(--muted)}
+.seg{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.autotag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:1px}
+.aist{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin:0 0 8px}
+.aist.ok{color:var(--ok)} .aist.bad{color:var(--bad)} .aist.busy{color:var(--muted)} .aist.warn{color:var(--warn)}
+.aist svg{width:16px;height:16px;stroke-width:3;flex:none}
+.spin.sm{width:16px;height:16px;border-width:2.5px}
+.pack{margin-top:10px;padding:0;overflow:hidden}
+.pack-h{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--line);font-weight:700}
+.pack-h span{flex:1;font-family:var(--font-d);font-size:17px;letter-spacing:.06em;text-transform:uppercase}
+.pk{display:flex;gap:10px;padding:9px 14px;border-top:1px solid var(--line);align-items:flex-start}
+.pack-h+.pk,.pack-h+dl .pk:first-child{border-top:0}
+.pk dt{width:40%;max-width:190px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;padding-top:3px;overflow-wrap:anywhere}
+.pk dd{margin:0;flex:1;min-width:0;font-size:14.5px;font-weight:600;overflow-wrap:anywhere;white-space:pre-line}
+.cp{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none;cursor:pointer}
+.cp:hover{border-color:var(--primary)}
+.cp.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.cp svg{width:18px;height:18px}
+.hid{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-in">
+      <div class="mark" aria-hidden="true">SC</div>
+      <div class="grow">
+        <h1>Controle de Sucata</h1>
+        <div class="sub" id="subline"></div>
+      </div>
+      <button class="iconbtn" data-act="theme" aria-label="Alternar modo claro e escuro" id="btn-theme"></button>
+      <button class="iconbtn" data-act="settings" aria-label="Ajustes" id="btn-settings"></button>
+      <a class="iconbtn" href="/logout" id="btn-logout" aria-label="Sair do sistema" title="Sair"></a>
+    </div>
+  </header>
+  <main id="view" tabindex="-1"></main>
+  <nav class="tabs" aria-label="Seções"><div class="in" id="tabs"></div></nav>
+</div>
+<div id="layer"></div>
+<div id="toast-host"></div>
+
+<script src="/backend.js"></script>
+<script>
+'use strict';
+//#LOGIC-START
+/* ====================== Configuração padrão (dados dos modelos de NF-e e MTR enviados) ====================== */
+const DEF={
+  precoKg:1.25, qtdInicialKg:5000, prazoDias:29,
+  local:'CPRT · Almox 02 · São Félix',
+  sucateiros:[{nome:'SINOBRAS',cnpj:'07.933.914/0001-54',precoKg:1.25},{nome:'DESTINAR',cnpj:'20.665.397/0001-48',precoKg:0.5},{nome:'J A B DE SOUZA COM DE USADOS',cnpj:'30.813.744/0001-96',precoKg:0.7}],
+  produto:{cod:'BBA014003',desc:'SUCATA; MATERIAL: FERROSA',ncm:'72044900',cst:'041',cfop:'5949',un:'KG'},
+  natureza:'OUTRAS SAIDAS - VEND',
+  emitente:{nome:'CONSORCIO PONTE RIO TOCANTINS',cnpj:'50.180.042/0001-20',ie:'158888154'},
+  dest:{nome:'SIDERURGICA NORTE BRASIL S/A',cnpj:'07.933.914/0001-54',ie:'151198446',end:'RODOVIA PA, 150 - INDUSTRIAL',cep:'68501-535',mun:'MARABA',uf:'PA'},
+  infoFiscal:'ICMS DIFERIDO NOS TERMOS DO ARTIGO 719 DO REGULAMENTO DO ICMS DO PARA, APROVADO PELO DECRETO 4.676/2001.',
+  obs1Suja:'MTR nº: {mtr} - PRIMEIRA NOTA PLACA CAMINHAO: {placa} MOTORISTA: {motorista}',
+  obs2:'MTR nº: {mtr} - NOTA COMPLEMENTAR (REF. NF {nfRef}) PLACA CAMINHAO: {placa} MOTORISTA: {motorista}',
+  obs1Limpa:'MTR nº: {mtr} - NOTA FINAL PLACA CAMINHAO: {placa} MOTORISTA: {motorista}',
+  mtr:{gerador:'CONSÓRCIO PONTE RIO TOCANTINS - 467730',geradorCnpj:'50180042000120',resp:'Danielle Steffane da Silva Povoas',cargo:'Técnica Meio Ambiente',
+       transp:'SIDERURGICA NORTE BRASIL SA - 20228',transpCnpj:'07933914000154',dest:'SIDERURGICA NORTE BRASIL SA - 20228',destCnpj:'07933914000154',
+       residuo:'160117-Sucatas metálicas ferrosas',estado:'SÓLIDO',classe:'CLASSE II B',acond:'CAÇAMBA ABERTA',trat:'Reciclagem',obs:'Coleta de Sucata {data}'}
+};
+
+/* ====================== Etapas ====================== */
+const STEPS={
+  caminhaoVazio:{t:'Caminhão vazio na balança',h:'Frente do caminhão sobre a balança, com a placa legível.',kind:'caminhao',ph:'e1'},
+  pesagemTara:{t:'Visor da balança (tara)',h:'Enquadre o número grande do visor.',kind:'visor',ph:'e1'},
+  motorista:{t:'CNH do motorista',h:'Documento aberto, lado com a foto e os dados.',kind:'cnh',ph:'e1'},
+  crlv:{t:'CRLV do caminhão',h:'Documento aberto, com a placa e o exercício legíveis.',kind:'crlv',ph:'e1'},
+  caminhaoCarregado:{t:'Caminhão carregado na balança',h:'Mesmo enquadramento da entrada, agora com a carga.',kind:'caminhao',ph:'e1'},
+  pesagemBruta:{t:'Visor da balança (carregado)',h:'Enquadre o número grande do visor.',kind:'visor',ph:'e1'},
+  mtr1:{t:'Manifesto (MTR)',h:'Anexe o MTR emitido (foto, captura ou PDF).',kind:'mtr',ph:'e2'},
+  nf1:{t:'Nota fiscal (DANFE)',h:'Anexe a NF-e autorizada (foto, captura ou PDF).',kind:'nf',ph:'e2'},
+  pesagemRetorno:{t:'Balança do pátio do sucateiro (pós-limpeza)',h:'Print/foto do visor da balança do sucateiro com o caminhão carregado e limpo.',kind:'visor',ph:'e3'},
+  mtr2:{t:'Manifesto complementar (MTR)',h:'Anexe o MTR complementar (foto, captura ou PDF).',kind:'mtr',ph:'e3'},
+  nf2:{t:'Nota fiscal complementar (DANFE)',h:'Anexe a NF-e complementar (foto, captura ou PDF).',kind:'nf',ph:'e3'},
+  deposito:{t:'Depósito na conta',h:'Anexe o comprovante ou extrato e confirme o valor recebido.',kind:'deposito',ph:'e4'}
+};
+const PHASES={suja:['e1','e2','e3','e4'],limpa:['e1','e2','e4']};
+// Numeração pela posição da etapa na operação: a sucata limpa não tem a Etapa 03, então o Recebimento é a Etapa 03 dela
+const stageNum=(t,ph)=>PHASES[t.tipo].indexOf(ph)+1;
+const stageTag=(t,ph)=>'Etapa 0'+stageNum(t,ph);
+const PH_NAME={
+  e1:'Etapa 01 · Pátio: entrada, carga e pesagem',
+  e2:t=>t.tipo==='suja'?'Etapa 02 · MTR e NF iniciais':'Etapa 02 · MTR e NF finais',
+  e3:'Etapa 03 · Pesagem pós-limpeza, MTR e NF finais',
+  e4:t=>stageTag(t,'e4')+' · Recebimento do valor'
+};
+const KIND_NAME={caminhao:'caminhão',visor:'visor da balança',cnh:'CNH',crlv:'CRLV',mtr:'manifesto (MTR)',nf:'nota fiscal',deposito:'comprovante de depósito'};
+const FIELDS={
+  caminhao:[['placa','Placa','text']],
+  visor:[['kg','Peso exibido (kg)','number']],
+  cnh:[['nome','Nome completo','text'],['registro','Nº de registro','text'],['categoria','Categoria','text'],['validade','Validade','date']],
+  crlv:[['placa','Placa','text'],['exercicio','Exercício','number']],
+  mtr:[['numero','Nº do MTR','text'],['qtdTon','Quantidade (t)','number'],['placa','Placa','text']],
+  nf:[['numero','Nº da NF','text'],['qtdKg','Quantidade (kg)','number'],['valorTotal','Valor total (R$)','number']],
+  deposito:[['valor','Valor recebido (R$)','number'],['data','Data do crédito','date'],['obs','Banco / observação','text']]
+};
+const REQUIRED={caminhao:['placa'],visor:['kg'],cnh:['nome'],crlv:['placa'],mtr:['numero','qtdTon'],nf:['numero','qtdKg'],deposito:['valor','data']};
+
+/* ====================== Utilidades ====================== */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const N0=new Intl.NumberFormat('pt-BR');
+const fmtN=n=>n==null?'—':N0.format(Math.round(n));
+const fmtKg=n=>n==null?'—':fmtN(n)+' kg';
+const fmtTon=k=>(k/1000).toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4});
+const brl=v=>v==null?'—':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const dtm=ms=>new Date(ms).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const dts=ms=>new Date(ms).toLocaleDateString('pt-BR');
+const hm=ms=>new Date(ms).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const up=s=>s==null?null:String(s).trim().toUpperCase()||null;
+const digits=s=>s==null?null:String(s).replace(/\D/g,'')||null;
+function num(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number')return isFinite(v)?v:null;
+  let s=String(v).replace(/[^\d,.\-]/g,'');
+  if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
+  else if(s.includes(','))s=s.replace(',','.');
+  else if((s.match(/\./g)||[]).length>1||/^\-?\d{1,3}\.\d{3}$/.test(s))s=s.replace(/\./g,'');
+  const n=parseFloat(s);return isFinite(n)?n:null;
+}
+function parseDate(s){
+  if(!s)return null;let m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  m=String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  return m?new Date(+m[3],+m[2]-1,+m[1]):null;
+}
+const strip=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+const CONF={'0':'O','O':'0','1':'I','I':'1','5':'S','S':'5','8':'B','B':'8','2':'Z','Z':'2'};
+function normPlate(s){
+  s=String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(s.length!==7)return s;
+  const a=[...s],L=i=>{a[i]=CONF[a[i]]&&/\d/.test(a[i])?CONF[a[i]]:a[i]},D=i=>{a[i]=CONF[a[i]]&&/[A-Z]/.test(a[i])?CONF[a[i]]:a[i]};
+  L(0);L(1);L(2);D(3);D(5);D(6);return a.join('');
+}
+function samePlate(a,b){
+  a=normPlate(a);b=normPlate(b);if(!a||!b||a===b)return true;
+  if(a.length!==7||b.length!==7)return false;
+  for(let i=0;i<7;i++)if(a[i]!==b[i]&&!(i===4&&CONF[a[i]]===b[i]))return false;
+  return true;
+}
+const fmtPlate=p=>{p=normPlate(p);return p&&p.length===7?p.slice(0,3)+'-'+p.slice(3):(p||'—')};
+const sameDriver=(doc,cnh)=>{
+  const a=strip(doc).split(/\s+/).filter(Boolean),b=strip(cnh).split(/\s+/);
+  return !a.length||!cnh||a.every(x=>b.includes(x));
+};
+
+/* ====================== Derivados de uma operação ====================== */
+const sucOf=t=>(S.cfg.sucateiros||[]).find(x=>x.nome===t.cliente)||null;
+const S={cfg:JSON.parse(JSON.stringify(DEF)),tickets:{}};
+const orderOf=t=>PHASES[t.tipo].flatMap(ph=>Object.keys(STEPS).filter(k=>STEPS[k].ph===ph));
+const done=(t,k)=>!!(t.leit&&t.leit[k])||!!(t.pulou&&t.pulou[k]);
+const L=(t,k)=>(t.leit&&t.leit[k])||null;
+const placaOf=t=>{for(const k of ['caminhaoVazio','crlv','caminhaoCarregado','mtr1','nf1']){const p=L(t,k)&&L(t,k).placa;if(p)return normPlate(p)}return null};
+const motoristaOf=t=>(L(t,'motorista')&&L(t,'motorista').nome)||(L(t,'mtr1')&&L(t,'mtr1').motorista)||(L(t,'nf1')&&L(t,'nf1').motorista)||null;
+function calc(t){
+  const tara=L(t,'pesagemTara')?L(t,'pesagemTara').kg:null,bruta=L(t,'pesagemBruta')?L(t,'pesagemBruta').kg:null,ret=L(t,'pesagemRetorno')?L(t,'pesagemRetorno').kg:null;
+  const liq=(tara!=null&&bruta!=null&&bruta>tara)?bruta-tara:null;
+  let qtd1=t.qtd1!=null?t.qtd1:null;
+  if(qtd1==null&&liq!=null)qtd1=t.tipo==='suja'?Math.min(S.cfg.qtdInicialKg,liq):liq;
+  let liqLimpo=null,qtd2=null;
+  if(t.tipo==='suja'&&tara!=null&&ret!=null){liqLimpo=ret-tara;if(qtd1!=null)qtd2=liqLimpo-qtd1}
+  return{tara,bruta,ret,liq,qtd1,liqLimpo,qtd2,preco:t.preco!=null?t.preco:S.cfg.precoKg};
+}
+function expectedQty(t,k){const c=calc(t);return(k==='mtr1'||k==='nf1')?c.qtd1:c.qtd2}
+function expectedDeposit(t){
+  const c=calc(t);let tot=null;
+  for(const k of ['nf1','nf2']){const d=L(t,k);if(!d)continue;
+    const v=d.valorTotal!=null?d.valorTotal:(d.qtdKg!=null?Math.round(d.qtdKg*c.preco*100)/100:null);
+    if(v!=null)tot=(tot||0)+v;}
+  return tot==null?null:Math.round(tot*100)/100;
+}
+function reqSteps(t,ph){
+  const c=calc(t);
+  return Object.keys(STEPS).filter(k=>STEPS[k].ph===ph&&!STEPS[k].opt&&!((k==='mtr2'||k==='nf2')&&c.qtd2!=null&&c.qtd2<=0));
+}
+const canConclude=(t,ph)=>reqSteps(t,ph).every(k=>done(t,k));
+function etapaDone(t,ph){
+  if(t.hist)return true;
+  if(t.etapas)return !!t.etapas[ph];
+  return canConclude(t,ph);
+}
+function phaseOf(t){
+  for(const ph of PHASES[t.tipo])if(!etapaDone(t,ph))return ph;
+  return 'concluida';
+}
+const curStep=t=>{const ph=phaseOf(t);return reqSteps(t,ph).find(k=>!done(t,k))||null};
+const stepTitle=(t,k)=>{
+  if(k==='mtr1')return t.tipo==='suja'?'Manifesto inicial (MTR)':'Manifesto final (MTR)';
+  if(k==='nf1')return t.tipo==='suja'?'Nota fiscal inicial (DANFE)':'Nota fiscal final (DANFE)';
+  if(k==='mtr2')return 'Manifesto final (MTR)';
+  if(k==='nf2')return 'Nota fiscal final (DANFE)';
+  return STEPS[k].t;
+};
+const phaseName=(t,ph)=>{const n=PH_NAME[ph];return typeof n==='function'?n(t):n};
+function statusOf(t){
+  const ph=phaseOf(t);
+  const map={e1:['Etapa 01 · Pátio','info'],e2:['Etapa 02 · MTR e NF '+(t.tipo==='suja'?'iniciais':'finais'),'info'],
+    e3:[done(t,'pesagemRetorno')?'Etapa 03 · MTR e NF finais':'Etapa 03 · Aguardando limpeza','wait'],e4:[stageTag(t,'e4')+' · Aguardando depósito','wait'],concluida:['Concluída','ok']};
+  return{ph,label:map[ph][0],tone:map[ph][1]};
+}
+
+/* ====================== Alertas automáticos ====================== */
+function alerts(t,all){
+  if(t.hist)return[];
+  const A=[],c=calc(t),ref=placaOf(t);
+  const add=(lvl,txt,extra)=>A.push(Object.assign({lvl,txt},extra||{}));
+  if(ref)for(const k of ['crlv','caminhaoCarregado','mtr1','nf1','mtr2','nf2']){
+    const p=L(t,k)&&L(t,k).placa;if(p&&!samePlate(p,ref))add('bad',`Placa em “${stepTitle(t,k)}” (${fmtPlate(p)}) difere da placa de entrada (${fmtPlate(ref)}).`,{key:k});
+  }
+  const cnh=L(t,'motorista');
+  if(cnh){
+    const v=parseDate(cnh.validade);
+    if(v&&v<new Date(new Date().setHours(0,0,0,0)))add('bad',`CNH vencida em ${dts(v)}.`,{key:'motorista'});
+    if(cnh.categoria&&!/[CDE]/.test(cnh.categoria))add('warn',`CNH categoria ${cnh.categoria}: confirme se habilita para caminhão.`,{key:'motorista'});
+    for(const k of ['mtr1','nf1','mtr2','nf2']){const m=L(t,k)&&L(t,k).motorista;if(m&&!sameDriver(m,cnh.nome)){add('warn',`Motorista em “${stepTitle(t,k)}” (${m}) não confere com a CNH.`,{key:k});break}}
+  }
+  const crlv=L(t,'crlv');
+  if(crlv&&crlv.exercicio&&crlv.exercicio<new Date().getFullYear())add('warn',`CRLV com exercício ${crlv.exercicio}: confirme o licenciamento.`,{key:'crlv'});
+  if(c.tara!=null&&c.bruta!=null&&c.bruta<=c.tara)add('bad','Peso carregado menor ou igual à tara: as pesagens podem estar invertidas.',{act:'swap',key:'pesagemBruta'});
+  if(c.liq!=null&&c.liq<200)add('warn','Peso líquido abaixo do mínimo da balança (200 kg).');
+  if(c.ret!=null&&c.tara!=null&&c.ret<=c.tara)add('bad','Peso pós-limpeza menor ou igual à tara.',{key:'pesagemRetorno'});
+  for(const k of Object.keys(t.leit||{})){const d=t.leit[k];if(!d||!STEPS[k])continue;
+    if(d.inc)add('warn',`${stepTitle(t,k)}: não foi possível ler os dados do arquivo. Informe os valores ou substitua o arquivo.`,{key:k});
+    else if(d.rev)add('warn',`${stepTitle(t,k)}: ${d.rev}`,{key:k});
+    if(d.aviso)add('warn',`${stepTitle(t,k)}: ${d.aviso}`,{key:k});}
+  if(t.tipo==='suja'&&c.qtd2!=null&&c.qtd2<=0)add('bad',`Peso limpo (${fmtKg(c.liqLimpo)}) não supera o já faturado (${fmtKg(c.qtd1)}). Não há nota complementar: acione o Fiscal para ajuste ou devolução.`);
+  for(const k of ['mtr1','mtr2','nf1','nf2']){
+    const d=L(t,k);if(!d)continue;const exp=expectedQty(t,k);
+    if(exp!=null){
+      const q=k.startsWith('mtr')?(d.qtdTon!=null?d.qtdTon*1000:null):d.qtdKg;
+      if(q!=null&&Math.abs(q-exp)>0.5)add('bad',`${stepTitle(t,k)}: quantidade ${fmtKg(q)} difere do esperado ${fmtKg(exp)}.`,{key:k});
+      if(k.startsWith('nf')&&d.valorTotal!=null&&Math.abs(d.valorTotal-Math.round(exp*c.preco*100)/100)>0.011)add('bad',`${stepTitle(t,k)}: valor ${brl(d.valorTotal)} difere do esperado ${brl(Math.round(exp*c.preco*100)/100)}.`,{key:k});
+    }
+    if(k.startsWith('nf')){const m=L(t,k.replace('nf','mtr'));if(d.mtr&&m&&m.numero&&d.mtr!==m.numero)add('bad',`NF cita o MTR ${d.mtr}, mas o manifesto lido é ${m.numero}.`,{key:k})}
+  }
+  const dep=L(t,'deposito'),ed=expectedDeposit(t);
+  if(dep&&dep.valor!=null&&ed!=null&&Math.abs(dep.valor-ed)>0.011)add('bad',`Depósito ${brl(dep.valor)} difere do total das notas (${brl(ed)}).`,{key:'deposito'});
+  if(all)for(const k of ['mtr1','mtr2','nf1','nf2']){
+    const d=L(t,k);if(!d||!d.numero)continue;
+    const dup=Object.values(all).find(o=>o.id!==t.id&&['mtr1','mtr2','nf1','nf2'].some(kk=>kk.slice(0,2)===k.slice(0,2)&&L(o,kk)&&L(o,kk).numero===d.numero));
+    if(dup)add('bad',`${k.startsWith('nf')?'NF':'MTR'} nº ${d.numero} já consta na operação ${dup.num}.`,{open:dup.id});
+  }
+  if(all&&ref&&phaseOf(t)==='e1'){
+    const w=Object.values(all).find(o=>o.id!==t.id&&o.tipo==='suja'&&phaseOf(o)==='e3'&&!done(o,'pesagemRetorno')&&samePlate(placaOf(o),ref));
+    if(w)add('warn',`A placa ${fmtPlate(ref)} tem a operação ${w.num} aguardando limpeza. Se for o retorno dessa carga, registre lá.`,{open:w.id});
+  }
+  return A;
+}
+
+/* ====================== Pacotes de emissão (NF e MTR) ====================== */
+function obsText(t,which){
+  const c=S.cfg,tpl=which==='2'?c.obs2:(t.tipo==='suja'?c.obs1Suja:c.obs1Limpa),m=L(t,which==='2'?'mtr2':'mtr1'),nf=L(t,'nf1');
+  return tpl.replace('{mtr}',m&&m.numero?m.numero:'(nº do MTR)').replace('{nfRef}',nf&&nf.numero?nf.numero:'—')
+    .replace('{placa}',fmtPlate(placaOf(t))).replace('{motorista}',motoristaOf(t)||'—');
+}
+function pkgMTR(t,which){
+  const c=S.cfg,q=expectedQty(t,which==='2'?'mtr2':'mtr1'),other=t.cnpjCliente&&digits(t.cnpjCliente)!==digits(c.dest.cnpj),m=other?Object.assign({},c.mtr,{transp:t.cliente,transpCnpj:digits(t.cnpjCliente),dest:t.cliente,destCnpj:digits(t.cnpjCliente)}):c.mtr;
+  return[
+    ['Gerador',`${m.gerador}\nCNPJ ${m.geradorCnpj}`],
+    ['Responsável',`${m.resp} · ${m.cargo}`],
+    ['Obs. do gerador',m.obs.replace('{data}',dts(Date.now()))],
+    ['Transportador',`${m.transp}\nCNPJ ${m.transpCnpj}`],
+    ['Motorista',motoristaOf(t)||'—'],
+    ['Placa do veículo',fmtPlate(placaOf(t))],
+    ['Destinador',`${m.dest}\nCNPJ ${m.destCnpj}`],
+    ['Resíduo',m.residuo],
+    ['Estado / Classe',`${m.estado} · ${m.classe}`],
+    ['Acondicionamento',m.acond],
+    ['Quantidade (TON)',q!=null?fmtTon(q):'—'],
+    ['Tratamento',m.trat]
+  ];
+}
+function pkgNF(t,which){
+  const c=S.cfg,p=c.produto,q=expectedQty(t,which==='2'?'nf2':'nf1'),d=(t.cnpjCliente&&digits(t.cnpjCliente)!==digits(c.dest.cnpj))?{nome:t.cliente,cnpj:t.cnpjCliente,ie:'conferir no cadastro',end:'conferir no cadastro',mun:'',uf:'',cep:''}:c.dest,k=calc(t),venc=new Date(Date.now()+c.prazoDias*864e5),tot=q!=null?Math.round(q*k.preco*100)/100:null;
+  return[
+    ['Natureza da operação',c.natureza],
+    ['Destinatário',`${d.nome}\nCNPJ ${d.cnpj} · IE ${d.ie}`],
+    ['Endereço',`${d.end} · ${d.mun}/${d.uf} · CEP ${d.cep}`],
+    ['Produto',`${p.cod} · ${p.desc}`],
+    ['NCM · CST · CFOP',`${p.ncm} · ${p.cst} · ${p.cfop}`],
+    ['Quantidade (KG)',q!=null?q.toLocaleString('pt-BR',{minimumFractionDigits:3}):'—'],
+    ['Valor unitário',k.preco.toLocaleString('pt-BR',{minimumFractionDigits:6})],
+    ['Valor total',tot!=null?tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'],
+    ['Fatura',`001 · venc. ${dts(venc)} · ${tot!=null?brl(tot):'—'}`],
+    ['Frete por conta','1-DESTINATARIO'],
+    ['Placa do veículo',fmtPlate(placaOf(t))],
+    ['Inf. complementares',`${c.infoFiscal}\n${obsText(t,which)}`]
+  ];
+}
+const pkgText=(title,rows)=>title+'\n'+rows.map(r=>`${r[0]}: ${r[1]}`).join('\n');
+
+/* ====================== Leitura: normalização do que a IA devolve ====================== */
+function cleanData(kind,d){
+  d=d||{};
+  if(kind==='caminhao')return{placa:normPlate(d.placa)||null,frota:up(d.frota)};
+  if(kind==='visor')return{kg:num(d.kg)};
+  if(kind==='cnh')return{nome:up(d.nome),registro:digits(d.registro),categoria:up(d.categoria),validade:d.validade||null};
+  if(kind==='crlv')return{placa:normPlate(d.placa)||null,exercicio:num(d.exercicio),modelo:up(d.modelo)};
+  if(kind==='mtr')return{numero:digits(d.numero),qtdTon:num(d.qtdTon),placa:normPlate(d.placa)||null,motorista:up(d.motorista)};
+  if(kind==='nf'){const n=parseInt(digits(d.numero)||'',10);return{numero:n?String(n):null,qtdKg:num(d.qtdKg),valorTotal:num(d.valorTotal),valorUnit:num(d.valorUnit),placa:normPlate(d.placa)||null,motorista:up(d.motorista),mtr:digits(d.mtr)}}
+  if(kind==='deposito')return{valor:num(d.valor),data:d.data&&parseDate(d.data)?String(d.data).slice(0,10).replace(/^(\d{2})\/(\d{2})\/(\d{4})$/,'$3-$2-$1'):null,obs:d.obs?String(d.obs).trim()||null:null,pagador:d.pagador||null};
+  return d;
+}
+const missing=(kind,c)=>(REQUIRED[kind]||[]).filter(f=>c[f]==null||c[f]==='');
+function needsReview(kind,c){
+  if(kind==='deposito')return 'Confira o valor e a data e confirme o reconhecimento do depósito.';
+  if(kind==='visor'&&c.kg!=null&&(c.kg%10!==0||c.kg<=0||c.kg>100000))return 'O valor lido não é múltiplo de 10 kg. Confira com a foto.';
+  if(kind==='caminhao'&&c.placa&&!/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(c.placa))return 'A placa lida não tem formato válido. Confira com a foto.';
+  return null;
+}
+function afterApply(t){
+  const c=calc(t);
+  if(t.preco==null)t.preco=S.cfg.precoKg;
+  if(c.liq!=null&&t.qtd1==null)t.qtd1=t.tipo==='suja'?Math.min(S.cfg.qtdInicialKg,c.liq):c.liq;
+}
+function summaryText(t){
+  const c=calc(t),st=statusOf(t),m=L(t,'mtr1'),n=L(t,'nf1'),m2=L(t,'mtr2'),n2=L(t,'nf2');
+  const l=[`${t.num} · sucata ${t.tipo} · ${st.label}`,`Placa ${fmtPlate(placaOf(t))} · Motorista ${motoristaOf(t)||'—'}`,
+    `Tara ${fmtKg(c.tara)} · Carregado ${fmtKg(c.bruta)} · Líquido ${fmtKg(c.liq)}`];
+  if(n||m)l.push(`${t.tipo==='suja'?'Inicial':'Final'}: NF ${n?n.numero:'—'} · MTR ${m?m.numero:'—'} · ${fmtKg(c.qtd1)}`);
+  if(t.tipo==='suja'&&c.ret!=null)l.push(`Pós-limpeza: ${fmtKg(c.ret)} · líquido limpo ${fmtKg(c.liqLimpo)} · complementar ${fmtKg(c.qtd2)}`);
+  if(n2||m2)l.push(`Complementar: NF ${n2?n2.numero:'—'} · MTR ${m2?m2.numero:'—'}`);
+  const dp=L(t,'deposito');if(dp)l.push(`Depósito reconhecido: ${brl(dp.valor)} em ${dp.data&&parseDate(dp.data)?dts(parseDate(dp.data)):'—'}`);
+  else if(expectedDeposit(t)!=null)l.push(`A receber: ${brl(expectedDeposit(t))}`);
+  return l.join('\n');
+}
+//#LOGIC-END
+
+/* ====================== Estado da aplicação ====================== */
+const IS_BROWSER=typeof document!=='undefined';
+const ST={pf:'all',err:null,suc:'',tab:'novo',tid:null,hf:'all',hs:'all',range:'all',q:'',busy:null,manual:null,sample:null,db:null,assets:null,downloads:null,uid:null,admin:false,master:false,perms:null,
+  synced:false,mode:'local',photos:{},copied:null,pendingPaint:false,batch:null};
+const can=p=>!ST.perms||ST.perms.includes(p);
+const TAB_PERM={novo:'registrar:ver',pend:'pendencias:ver',alert:'alertas:ver',hist:'historico:ver',painel:'painel:ver'};
+const chains={};
+let toastTimer=null,renderQ=false;
+const IC={
+ camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ truck:'<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+ id:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.5-2 2-3 3.5-3s3 1 3.5 3M15 9.5h4M15 13h4"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+ logout:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M16 8l4 4-4 4M20 12H9"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.3c1.8.8 3 2.7 3 5.7"/>',
+ gear:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ download:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
+ trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+ swap:'<path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/>',
+ search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+ out:'<path d="M5 19L19 5M9 5h10v10"/>',
+ copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+ scale:'<path d="M3 18h18M5 18V9l7-4 7 4v9M9 14h6"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ warn:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.01"/>',
+ stack:'<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+ doc:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
+ back:'<path d="m15 5-7 7 7 7"/>'
+};
+const ic=n=>'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>';
+const KIND_IC={caminhao:'truck',visor:'scale',cnh:'id',crlv:'doc',mtr:'doc',nf:'doc',deposito:'doc'};
+const DOCK=['mtr','nf','deposito'];
+const TIPO={suja:{cls:'ret',label:'Sucata suja',ico:'out'},limpa:{cls:'mob',label:'Sucata limpa',ico:'check'}};
+const $=(s,r)=>(r||document).querySelector(s);
+const dkey=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const Cfg={mem:{},get(k){try{return localStorage.getItem('sucata-'+k)||this.mem[k]||''}catch(e){return this.mem[k]||''}},set(k,v){this.mem[k]=v;try{localStorage.setItem('sucata-'+k,v)}catch(e){}}};
+
+/* ====================== Persistência ====================== */
+const clean=o=>JSON.parse(JSON.stringify(o));
+function localSave(){try{localStorage.setItem('sucata.t',JSON.stringify(S.tickets));localStorage.setItem('sucata.c',JSON.stringify(S.cfg))}catch(e){}}
+function localLoad(){try{const t=JSON.parse(localStorage.getItem('sucata.t')||'null');if(t)S.tickets=t;const c=JSON.parse(localStorage.getItem('sucata.c')||'null');if(c)mergeCfg(c)}catch(e){}}
+function mergeCfg(c){const d=clean(DEF);for(const k of Object.keys(c||{})){if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))Object.assign(d[k],c[k]);else d[k]=c[k]}S.cfg=d}
+function persist(t){
+  if(!ST.db){localSave();return}
+  const body=clean(t);
+  chains[t.id]=(chains[t.id]||Promise.resolve()).then(()=>ST.db.doc('tickets/'+t.id).set(body)).catch(e=>{toast('Não foi possível salvar na nuvem ('+((e&&e.code)||'erro')+'). Os dados ficam neste aparelho.');localSave()});
+}
+function edit(id,fn){const t=clean(S.tickets[id]);fn(t);t.atualizadoEm=Date.now();S.tickets[id]=t;persist(t);render();return t}
+function nextNum(){
+  const d=new Date(),k=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const n=Object.values(S.tickets).filter(t=>t.num&&t.num.startsWith('SUC-'+k)).length+1;
+  return`SUC-${k}-${String(n).padStart(4,'0')}`;
+}
+function newTicket(tipo,extra){
+  const t=Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),num:nextNum(),tipo,criadoEm:Date.now(),atualizadoEm:Date.now(),por:ST.uid||null,controlador:Cfg.get('nome')||null,leit:{},fotos:{},pulou:{},etapas:{}},extra||{});
+  S.tickets[t.id]=t;persist(t);return t;
+}
+async function deleteTicket(id){
+  delete S.tickets[id];
+  if(ST.db){try{await ST.db.doc('tickets/'+id).delete()}catch(e){toast('Não foi possível excluir na nuvem.')}}else localSave();
+}
+
+/* ====================== Fotos (com carimbo de data, hora e controlador, como no Controle de Aço) ====================== */
+async function prepare(file,t,key,stamp){
+  let src;
+  try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){
+    src=await new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>res(im);im.onerror=rej;im.src=u});
+  }
+  const sw=src.width||src.naturalWidth,sh=src.height||src.naturalHeight,sc=Math.min(1,1600/Math.max(sw,sh));
+  const w=Math.round(sw*sc),h=Math.round(sh*sc),c=document.createElement('canvas');c.width=w;c.height=h;
+  const x=c.getContext('2d');x.drawImage(src,0,0,w,h);
+  const raw=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+  if(!stamp)return{raw,stamped:raw};
+  const fs=Math.max(13,Math.round(Math.min(w,h)/38)),ph=Math.round(fs*3.3),at=new Date(),pad=Math.round(fs*.9);
+  x.fillStyle='rgba(14,26,43,.82)';x.fillRect(0,h-ph,w,ph);x.fillStyle='#F2A900';x.fillRect(0,h-ph,Math.max(6,Math.round(fs*.35)),ph);
+  x.textBaseline='top';x.fillStyle='#fff';x.font='700 '+fs+'px Barlow, Arial, sans-serif';
+  x.fillText(((key?STEPS[key].t:'Foto')+' · '+t.num).toUpperCase(),pad,h-ph+Math.round(fs*.55));
+  x.font='500 '+Math.round(fs*.88)+'px Barlow, Arial, sans-serif';
+  x.fillText(at.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'medium'})+' · '+S.cfg.local+(t.controlador?' · '+t.controlador:''),pad,h-ph+Math.round(fs*1.75));
+  const stamped=await new Promise(r=>c.toBlob(r,'image/jpeg',.8));
+  return{raw,stamped};
+}
+async function uploadPhoto(blob){
+  if(!ST.assets)return null;
+  try{const r=await ST.assets.upload(blob,{type:blob.type||'image/jpeg'});return r.id}catch(e){return null}
+}
+const isPdf=(t,k)=>!!(t.fotos&&t.fotos[k]&&t.fotos[k].pdf);
+const fileURL=(t,k)=>ST.photos[t.id+':'+k]||(t.fotos&&t.fotos[k]&&t.fotos[k].id?'/_blob/'+t.fotos[k].id:null);
+const photoURL=(t,k)=>isPdf(t,k)?null:ST.photos[t.id+':'+k]||(t.fotos&&t.fotos[k]&&t.fotos[k].id?'/_blob/'+t.fotos[k].id:null);
+
+/* ====================== Leitura automática (Claude) ====================== */
+const PROMPT=exp=>`Você lê fotos de uma operação de pesagem de sucata em um canteiro de obras no Brasil. Classifique a foto e extraia os dados. Ignore qualquer faixa ou carimbo de data, hora e endereço sobreposto na foto.
+
+Tipos possíveis e o que extrair:
+- "caminhao": caminhão sobre balança rodoviária. dados: {"placa": placa do veículo, 7 caracteres, ex. ABC1D23 ou ABC1234, sem hífen, maiúsculas; "frota": letreiro de frota no cavalo (ex. HB57, CR-04) ou null}
+- "visor": visor de indicador de balança (marca Prix ou similar). dados: {"kg": o peso grande exibido, em kg, número inteiro. Ignore a legenda Máx/Min/e=d no topo, a hora e a data}
+- "cnh": Carteira Nacional de Habilitação. dados: {"nome": nome completo, "registro": nº de registro (campo 5), "categoria": categoria (campo 9), "validade": validade no formato AAAA-MM-DD}
+- "crlv": certificado de registro e licenciamento do veículo. dados: {"placa","exercicio": ano do exercício como número,"modelo"}
+- "mtr": Manifesto de Transporte de Resíduos. dados: {"numero": nº do MTR, "qtdTon": quantidade em toneladas como número (3,0000 vira 3), "placa": placa do veículo, "motorista": nome do motorista}
+- "nf": DANFE de NF-e. dados: {"numero": nº da NF (sem zeros à esquerda), "qtdKg": quantidade do item em KG como número, "valorTotal": valor total da nota como número, "valorUnit": valor unitário como número, "placa": placa do veículo nas informações complementares ou transportador, "motorista": motorista nas informações complementares, "mtr": nº do MTR citado nas informações complementares}
+- "deposito": comprovante de transferência/depósito ou extrato bancário. dados: {"valor": valor creditado como número, "data": data do crédito AAAA-MM-DD, "pagador": nome de quem pagou ou null}
+- "outro": qualquer outra coisa.
+
+Regras: nunca invente. Use null para o que não estiver legível com certeza. Números em JSON com ponto decimal. Dígitos de peso e de documentos devem ser lidos com máximo cuidado.${exp?`\nO tipo esperado para esta foto é "${exp}", mas classifique pelo que a foto realmente mostra.`:''}
+
+Responda SOMENTE com JSON: {"tipo":"...","legivel":true|false,"dados":{...}}`;
+const FATAL=['not_granted','sampling_disabled','images_unavailable','not_declared','capability_disabled','capability_removed'];
+async function readPhoto(blob,exp){
+  if(!ST.sample)throw{code:'no_ocr'};
+  try{return await ST.sample.json(PROMPT(exp),{images:[blob],modelTier:'default'})}
+  catch(e){if(e&&FATAL.includes(e.code))ST.sample=null;throw e}
+}
+function targetKey(t,tipo,pref){
+  const ph=phaseOf(t),cand=orderOf(t).filter(k=>STEPS[k].kind===tipo&&STEPS[k].ph===ph&&!done(t,k));
+  return pref&&cand.includes(pref)?pref:(cand[0]||null);
+}
+let _pdfjs=null;
+function loadPdfJs(){
+  if(_pdfjs)return _pdfjs;
+  _pdfjs=new Promise((res,rej)=>{
+    if(window.pdfjsLib)return res(window.pdfjsLib);
+    const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    sc.onload=()=>{try{const L=window.pdfjsLib;L.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js')"],{type:'text/javascript'}));res(L)}catch(e){rej(e)}};
+    sc.onerror=()=>rej(new Error('pdfjs'));document.head.appendChild(sc);
+    setTimeout(()=>rej(new Error('timeout')),15000);
+  }).catch(e=>{_pdfjs=null;throw e});
+  return _pdfjs;
+}
+async function pdfToImage(file){
+  const L=await loadPdfJs();
+  const doc=await L.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+  const pg=await doc.getPage(1),v0=pg.getViewport({scale:1}),sc=Math.min(3,2000/Math.max(v0.width,v0.height)),vp=pg.getViewport({scale:sc});
+  const cv=document.createElement('canvas');cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
+  const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);
+  await pg.render({canvasContext:cx,viewport:vp}).promise;
+  return await new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error('blob')),'image/jpeg',.9));
+}
+const READ_FAIL='Não foi possível ler esta foto. Tire outra, bem enquadrada e sem reflexo.';
+async function handlePhoto(tid,file,pref,quiet,stamp){
+  const kindPref=pref?STEPS[pref].kind:null;
+  const pdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name||'');
+  ST.err=null;ST.busy={tid,key:pref,msg:pdf?'Anexando o PDF…':'Preparando a foto…'};render();
+  const t00=S.tickets[tid];let blobs;
+  try{blobs=pdf?{raw:file,stamped:file}:await prepare(file,t00,pref,stamp)}catch(e){ST.busy=null;toast('Não foi possível abrir esse arquivo.');render();return{ok:false}}
+  const tmp='tmp'+Math.random().toString(36).slice(2);ST.photos[tid+':'+tmp]=URL.createObjectURL(blobs.stamped);
+  const up=uploadPhoto(blobs.stamped);
+  ST.busy={tid,key:pref,msg:pdf?'Anexando o PDF…':'Lendo os dados da foto…'};render();
+  let res=null,err=null;
+  if(!pdf)try{res=await readPhoto(blobs.raw,kindPref)}catch(e){err=e}
+  else if(ST.sample&&!(pref&&STEPS[pref].ph==='e1'))try{res=await readPhoto(await pdfToImage(file),kindPref)}catch(e){res=null}
+  const photoId=await up;
+  const t0=S.tickets[tid];if(!t0){ST.busy=null;render();return{ok:false}}
+  const ocrOff=!pdf&&(!ST.sample||!!(err&&(err.code==='no_ocr'||FATAL.includes(err.code))));
+  const tipo=res&&res.tipo,readable=!!(res&&res.legivel!==false&&tipo&&tipo!=='outro');
+  const key=pref||(readable?targetKey(t0,tipo,null):null);
+  if(!key){ST.busy=null;if(!quiet)toast(readable?`A foto parece ser de ${KIND_NAME[tipo]||tipo}, mas não há item pendente para ela nesta etapa.`:READ_FAIL);render();return{ok:false,tipo}}
+  const kind=STEPS[key].kind,strict=STEPS[key].ph==='e1';
+  if(pdf&&strict){ST.busy=null;if(quiet)toast('Na Etapa 01 só são aceitas fotos.');else{ST.err={tid,key,msg:'Na Etapa 01 só são aceitas fotos.'};toast('Na Etapa 01 só são aceitas fotos.')}render();return{ok:false}}
+  const fail=m=>{ST.busy=null;ST.err={tid,key,msg:m};toast(m);render();return{ok:false,tipo}};
+  let data=null,inc=false,rev=null,aviso=null;
+  if(readable&&tipo===kind){
+    data=cleanData(kind,res.dados);
+    if(missing(kind,data).length){if(strict)return fail(READ_FAIL);inc=true}
+    else rev=needsReview(kind,data);
+  }else if(ocrOff||(pdf&&!res)){data={};inc=true}
+  else{
+    if(strict)return fail(readable?`Esta foto parece ser de ${KIND_NAME[tipo]}. Fotografe ${KIND_NAME[kind]}.`:READ_FAIL);
+    data={};inc=true;if(readable)aviso=`O arquivo anexado parece ser de ${KIND_NAME[tipo]||tipo}.`;
+  }
+  if(!pref&&inc){ST.busy=null;render();return{ok:false,tipo}}
+  const isDep=kind==='deposito';
+  ST.busy=null;
+  ST.photos[tid+':'+key]=ST.photos[tid+':'+tmp];
+  edit(tid,t=>{
+    t.fotos[key]={id:photoId||null,em:Date.now()};if(pdf)t.fotos[key].pdf=true;
+    if(!isDep){
+      const o={em:Date.now(),por:Cfg.get('nome')||null};if(inc)o.inc=true;if(rev&&!isDep)o.rev=rev;if(aviso)o.aviso=aviso;
+      t.leit[key]=Object.assign(data,o);delete t.pulou[key];
+      if(['pesagemTara','pesagemBruta'].includes(key))t.qtd1=null;afterApply(t);
+    }
+  });
+  if(isDep&&ST.fixPh){if(data&&data.valor!=null)edit(tid,t=>{t.leit.deposito=Object.assign({},data,{em:Date.now(),por:Cfg.get('nome')||null});afterApply(t)});render()}
+  else if(isDep){ST.manual={tid,key,msg:'Confira o valor e a data e confirme o reconhecimento do depósito.',vals:Object.assign({},data||{},{data:(data&&data.data)||dkey(new Date())})};render()}
+  else if(inc&&(!strict||ocrOff)&&!ST.fixPh){ST.manual={tid,key,msg:pdf?'Arquivo anexado. Informe os dados abaixo ou continue assim: será gerado um alerta.':'Não consegui ler todos os dados. Complete abaixo ou continue assim: será gerado um alerta.',vals:data||{}};render()}
+  return{ok:!inc&&!isDep,key,tipo};
+}
+async function handleBatch(tid,files){
+  files=[...files].sort((a,b)=>(a.lastModified-b.lastModified)||a.name.localeCompare(b.name));
+  let ok=0,pend=0,skip=0;
+  for(let i=0;i<files.length;i++){
+    ST.batch={i:i+1,n:files.length};
+    const r=await handlePhoto(tid,files[i],null,true,false);
+    if(r.ok)ok++;else if(r.key)pend++;else skip++;
+    if(ST.manual)break;
+  }
+  ST.batch=null;render();
+  toast(`${ok} foto(s) lida(s)${pend?`, ${pend} precisa(m) de conferência`:''}${skip?`, ${skip} não reconhecida(s)`:''}.`);
+}
+function saveManual(form){
+  const m=ST.manual;if(!m)return;
+  if(STEPS[m.key].ph==='e1'&&ST.sample){toast('Na Etapa 01 só é possível substituir a foto.');return}const kind=STEPS[m.key].kind,raw={};
+  for(const [f] of FIELDS[kind]){const el=form.querySelector(`[name="${f}"]`);raw[f]=el?el.value:null}
+  const d=cleanData(kind,raw);
+  if(missing(kind,d).length){toast('Preencha os campos obrigatórios.');return}
+  const tid=m.tid,key=m.key;ST.manual=null;
+  edit(tid,t=>{t.leit[key]=Object.assign(d,{em:Date.now(),manual:true,por:Cfg.get('nome')||null});delete t.pulou[key];
+    if(['pesagemTara','pesagemBruta'].includes(key))t.qtd1=null;afterApply(t)});
+}
+
+/* ====================== Camadas, toast, cópia, exportação ====================== */
+const layer=()=>document.getElementById('layer');
+function closeLayer(){layer().innerHTML=''}
+function sheet(title,body,foot){
+  layer().innerHTML='<div class="overlay" data-act="ovl"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="hd"><h3>'+esc(title)+'</h3><button class="btn sm" data-act="closelayer" aria-label="Fechar">'+ic('x')+'</button></div>'+body+(foot||'')+'</div></div>';
+}
+function toast(m){const h=document.getElementById('toast-host');h.innerHTML='<div class="toast" role="status">'+esc(m)+'</div>';clearTimeout(toastTimer);toastTimer=setTimeout(()=>{h.innerHTML=''},3200)}
+function confirmBox(msg,okLabel){
+  return new Promise(res=>{
+    layer().innerHTML='<div class="overlay" style="align-items:center;padding:16px"><div class="card pad" role="alertdialog" aria-modal="true" style="max-width:420px;width:100%"><p style="margin:0 0 16px;font-weight:600">'+esc(msg)+'</p><div class="row"><button class="btn" id="cb-no">Cancelar</button><button class="btn danger" id="cb-ok">'+esc(okLabel||'Confirmar')+'</button></div></div></div>';
+    $('#cb-no').onclick=()=>{closeLayer();res(false)};$('#cb-ok').onclick=()=>{closeLayer();res(true)};$('#cb-no').focus();
+  });
+}
+function zoom(src){layer().insertAdjacentHTML('beforeend','<div class="lightbox" data-act="closezoom"><button class="iconbtn" aria-label="Fechar imagem" data-act="closezoom">'+ic('x')+'</button><img src="'+esc(src)+'" alt="Foto ampliada"></div>')}
+async function copy(text,id){
+  let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true}catch(e){}
+  if(!ok){try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
+  if(ok){ST.copied=id;render();setTimeout(()=>{if(ST.copied===id){ST.copied=null;render()}},1400)}else toast('Não foi possível copiar. Selecione o texto manualmente.');
+}
+function csvAll(list){
+  const rows=[['Operação','Tipo','Situação','Abertura','Responsável','Cliente','R$/kg','Placa','Motorista','Tara kg','Carregado kg','Líquido kg','NF inicial/final','MTR inicial/final','Qtd NF1 kg','Pós-limpeza kg','NF compl.','MTR compl.','Qtd compl. kg','Valor total R$','Depósito R$','Data do depósito','Alertas']];
+  const f=n=>n==null?'':String(n).replace('.',',');
+  for(const t of list.sort((a,b)=>a.criadoEm-b.criadoEm)){
+    const c=calc(t),n1=L(t,'nf1'),n2=L(t,'nf2'),m1=L(t,'mtr1'),m2=L(t,'mtr2');
+    const val=((n1?(n1.valorTotal!=null?n1.valorTotal:c.qtd1*c.preco):0)+(n2?(n2.valorTotal!=null?n2.valorTotal:c.qtd2*c.preco):0));
+    rows.push([t.num,t.tipo,statusOf(t).label,dtm(t.criadoEm),t.controlador||'',t.cliente||'',f(calc(t).preco),fmtPlate(placaOf(t)),motoristaOf(t)||'',f(c.tara),f(c.bruta),f(c.liq),n1?n1.numero:'',m1?m1.numero:'',f(n1?n1.qtdKg:null),f(c.ret),n2?n2.numero:'',m2?m2.numero:'',f(n2?n2.qtdKg:null),f(val||''),f(L(t,'deposito')?L(t,'deposito').valor:''),L(t,'deposito')&&L(t,'deposito').data?L(t,'deposito').data:'',alerts(t,S.tickets).map(a=>a.txt).join(' | ')]);
+  }
+  return'﻿'+rows.map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+}
+async function exportCsv(list){
+  const text=csvAll(list.slice()),name='controle-sucata-'+dkey(new Date())+'.csv';
+  if(ST.downloads){try{await ST.downloads.save({filename:name,data:text});return}catch(e){if(e&&e.code==='declined')return}}
+  sheet('Exportar CSV','<p class="muted" style="margin-top:0">Este visualizador não permite baixar arquivos. Copie o texto e cole em uma planilha.</p><textarea class="exp" id="exp" readonly>'+esc(text)+'</textarea>','<div class="row mt"><button class="btn pri" data-act="copyexp">'+ic('copy')+'Copiar tudo</button></div>');
+}
+function seedDemo(){
+  const now=Date.now(),H=36e5,mk=(tipo,off,x)=>newTicket(tipo,Object.assign({demo:true,criadoEm:now-off*H,atualizadoEm:now-off*H,controlador:'EXEMPLO',cliente:'SINOBRAS',cnpjCliente:'07.933.914/0001-54',preco:1.25},x));
+  const et=(...p)=>{const o={};p.forEach(x=>o[x]={em:now,por:'EXEMPLO'});return o};
+  const base=(placa,nome)=>({caminhaoVazio:{placa,frota:null,em:now},pesagemTara:{kg:15730,em:now},motorista:{nome,registro:null,categoria:'AD',validade:'2035-07-08',em:now},crlv:{placa,exercicio:2026,em:now},pesagemBruta:{kg:29420,em:now},caminhaoCarregado:{placa,em:now}});
+  mk('suja',30,{qtd1:5000,etapas:et('e1','e2'),leit:Object.assign(base('SZH0B39','FRANCISCO RONILDO (EXEMPLO)'),{mtr1:{numero:'000000000001',qtdTon:5,placa:'SZH0B39',motorista:'FRANCISCO RONILDO',em:now},nf1:{numero:'9001',qtdKg:5000,valorTotal:6250,valorUnit:1.25,placa:'SZH0B39',motorista:'FRANCISCO RONILDO',mtr:'000000000001',em:now}})});
+  mk('suja',52,{qtd1:5000,etapas:et('e1','e2'),leit:Object.assign(base('SZH0B09','LUIZ CARLOS (EXEMPLO)'),{mtr1:{numero:'000000000002',qtdTon:5,placa:'SZH0B09',motorista:'LUIZ CARLOS',em:now},nf1:{numero:'9002',qtdKg:5000,valorTotal:6250,valorUnit:1.25,placa:'SZH0B09',motorista:'LUIZ CARLOS',mtr:'000000000002',em:now},pesagemRetorno:{kg:24190,em:now}})});
+  mk('limpa',20,{qtd1:13690,etapas:et('e1','e2'),leit:Object.assign(base('QWE1R23','MOTORISTA EXEMPLO'),{mtr1:{numero:'000000000003',qtdTon:13.69,placa:'QWE1R23',motorista:'MOTORISTA EXEMPLO',em:now},nf1:{numero:'9003',qtdKg:13690,valorTotal:17112.5,valorUnit:1.25,placa:'QWE1R23',motorista:'MOTORISTA EXEMPLO',mtr:'000000000003',em:now}})});
+  mk('limpa',3,{etapas:{},leit:{caminhaoVazio:{placa:'RTB4C21',em:now},pesagemTara:{kg:14980,em:now},motorista:{nome:'MOTORISTA EXEMPLO',categoria:'E',validade:'2031-02-10',em:now}}});
+}
+
+/* ====================== Telas ====================== */
+function go(tab,tid){ST.tab=tab;ST.tid=tid||null;ST.fixPh=null;ST.fixKey=null;ST.manual=null;ST.err=null;window.scrollTo(0,0);render()}
+function render(){if(renderQ)return;renderQ=true;requestAnimationFrame(()=>{renderQ=false;paint()})}
+function paint(){
+  const ae=document.activeElement;
+  if(ae&&ae.tagName==='INPUT'&&ae.closest&&ae.closest('.f,.search')){ST.pendingPaint=true;return}
+  ST.pendingPaint=false;
+  const allowed=Object.keys(TAB_PERM).filter(k=>can(TAB_PERM[k]));
+  if(allowed.length&&!allowed.includes(ST.tab)){ST.tab=allowed[0];ST.tid=null}
+  renderTabs();updateSub();
+  const view=document.getElementById('view');
+  let h=banners();
+  if(ST.tab==='novo')h+=(ST.tid&&S.tickets[ST.tid])?vTicket(S.tickets[ST.tid]):vHome();
+  else if(ST.tab==='pend')h+=(ST.tid&&S.tickets[ST.tid])?vTicket(S.tickets[ST.tid]):vPend();
+  else if(ST.tab==='alert')h+=(ST.tid&&S.tickets[ST.tid])?vTicket(S.tickets[ST.tid]):vAlert();
+  else if(ST.tab==='hist')h+=vHist();
+  else h+=vPanel();
+  view.innerHTML=h;
+}
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==='dark':!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)};
+function applyTheme(){const t=Cfg.get('tema');if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
+function renderTabs(){
+  const open=Object.values(S.tickets).filter(t=>phaseOf(t)!=='concluida').length;
+  const nAl=allAlerts().reduce((a,x)=>a+x.al.length,0);
+  const t=[['novo','plus','Registrar'],['pend','clock','Pendências'],['alert','warn','Alertas'],['hist','list','Histórico'],['painel','chart','Painel']];
+  document.getElementById('tabs').innerHTML=t.filter(x=>can(TAB_PERM[x[0]])).map(([k,i,l])=>'<button class="tab" data-act="tab" data-tab="'+k+'"'+(ST.tab===k?' aria-current="page"':'')+'>'+ic(i)+'<span>'+l+'</span>'+(k==='pend'&&open?'<span class="badge">'+open+'</span>':'')+(k==='alert'&&nAl?'<span class="badge" style="background:var(--bad);color:#fff">'+nAl+'</span>':'')+'</button>').join('')+((ST.master||can('perfis:ver'))?'<a class="tab" href="/administracao" id="btn-admin" title="Usuários e permissões">'+ic('users')+'<span>Usuários</span></a>':'');
+  const bs=document.getElementById('btn-settings');bs.innerHTML=ic('gear');bs.hidden=!can('ajustes:ver');
+  document.getElementById('btn-logout').innerHTML=ic('logout');
+  const dk=isDark();const bt=document.getElementById('btn-theme');bt.innerHTML=ic(dk?'sun':'moon');bt.setAttribute('aria-label',dk?'Mudar para modo claro':'Mudar para modo escuro');
+}
+function updateSub(){
+  const d=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('subline').textContent=d+(ST.mode==='cloud'?(ST.synced?'':' · sincronizando…'):' · só neste aparelho');
+}
+function banners(){
+  let h='';
+  if(ST.mode==='cloud'&&!ST.assets)h+='<div class="note mt">As fotos não estão sendo guardadas com o seu acesso. As leituras ficam salvas, mas as imagens só aparecem nesta sessão. Verifique a conexão com o servidor.</div>';
+  if(!ST.sample&&ST.mode==='cloud')h+='<div class="note mt">Leitura automática indisponível (configure ANTHROPIC_API_KEY no servidor). Fotografe e informe os números em cada etapa.</div>';
+  return h;
+}
+
+/* --- Registrar --- */
+function nextText(t){
+  const s=statusOf(t);if(s.ph==='concluida')return'Operação concluída';
+  const nk=curStep(t);return nk?'Falta: '+stepTitle(t,nk):'Pronta para concluir a etapa';
+}
+function recItem(t){
+  const s=statusOf(t),c=calc(t),al=alerts(t,S.tickets),bad=al.some(a=>a.lvl==='bad'),T=TIPO[t.tipo];
+  const th=photoURL(t,'caminhaoVazio');
+  return '<button class="rec'+(bad?' b':al.length?' w':'')+'" data-act="open" data-id="'+t.id+'"><span class="th">'+(th?'<img src="'+esc(th)+'" alt="">':ic('truck'))+'</span><span>'+
+   '<span class="l1"><span class="pill '+T.cls+'">'+(t.tipo==='suja'?'Suja':'Limpa')+'</span><span class="pr">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</span>'+(t.demo?'<span class="pill demo">exemplo</span>':'')+(t.hist?'<span class="pill imp">importado</span>':'')+(al.length?'<span class="pill '+(bad?'bad':'wait')+'">'+al.length+' alerta'+(al.length>1?'s':'')+'</span>':'')+'</span>'+
+   '<span class="l2"><b style="color:var(--ink)">'+esc(s.label)+'</b> · '+esc(nextText(t))+'</span>'+
+   '<span class="l2">'+esc(motoristaOf(t)||'sem motorista')+(t.cliente?' · '+esc(t.cliente):'')+' · '+dtm(t.atualizadoEm)+(s.ph!=='concluida'&&daysSince(t)>0?' · parada há '+daysSince(t)+' d':'')+'</span></span>'+
+   (s.ph==='e4'&&expectedDeposit(t)!=null?'<span class="kg" style="font-size:18px">'+brl(expectedDeposit(t))+'<small>a receber</small></span>':'<span class="kg">'+(c.liq!=null?fmtN(c.liq):'—')+'<small>kg líq.</small></span>')+'</button>';
+}
+const sucSel=()=>(S.cfg.sucateiros||[]).find(x=>x.nome===ST.suc)||null;
+function vHome(){
+  const all=Object.values(S.tickets),open=all.filter(t=>phaseOf(t)==='e1').sort((a,b)=>b.atualizadoEm-a.atualizadoEm);
+  const nome=Cfg.get('nome');
+  const q=fmtKg(S.cfg.qtdInicialKg);
+  let h='<h2 class="sec" style="margin-top:6px"><span class="n">1</span>Quem está operando</h2><div class="card pad"><div class="f"><label for="ctl">Controlador <span class="rq">*</span></label><input id="ctl" data-ctl="1" value="'+esc(nome)+'" placeholder="Seu nome completo" autocomplete="off"></div></div>'+
+   '<h2 class="sec"><span class="n">2</span>Sucateiro</h2><div class="card pad"><div class="f"><label for="suc">Quem está comprando <span class="rq">*</span></label><select id="suc"><option value="">Selecione o sucateiro</option>'+(S.cfg.sucateiros||[]).map(x=>'<option value="'+esc(x.nome)+'"'+(ST.suc===x.nome?' selected':'')+'>'+esc(x.nome)+'</option>').join('')+'</select>'+(sucSel()?'<div class="hint">Preço: <b>'+brl(sucSel().precoKg)+' por kg</b> · CNPJ '+esc(sucSel().cnpj)+'</div>':'<div class="hint">O preço por kg vem do cadastro de cada sucateiro.</div>')+'</div></div>'+
+   '<h2 class="sec"><span class="n">3</span>Tipo de sucata</h2><div class="ops">'+
+   '<button class="op ret" data-act="create" data-tipo="suja"><span class="ico">'+ic('out')+'</span><span class="tt">Sucata suja</span><span class="dd">4 etapas: pátio, MTR e NF de '+q+', pesagem pós-limpeza com MTR e NF finais, e recebimento.</span></button>'+
+   '<button class="op mob" data-act="create" data-tipo="limpa"><span class="ico">'+ic('check')+'</span><span class="tt">Sucata limpa</span><span class="dd">Pátio, MTR e NF finais com o peso líquido, e recebimento.</span></button></div>'+
+   '<div class="note mt">Esta tela é a <b>Etapa 01</b>: fotos do caminhão, das pesagens, da CNH e do CRLV. Ao concluir a etapa, a operação segue para a aba Pendências. Data, hora e controlador são gravados na imagem.</div>';
+  h+='<h2 class="sec"><span class="n">4</span>Etapa 01 em andamento ('+open.length+')</h2>';
+  if(open.length)h+=open.map(recItem).join('');
+  else h+='<div class="card empty"><div class="ei">'+ic('truck')+'</div><b>Nenhuma operação na Etapa 01</b><div style="margin-top:4px">As demais etapas ficam na aba Pendências.</div>'+(all.length?'':'<div class="mt"><button class="btn" data-act="seed">Ver com exemplos</button></div>')+'</div>';
+  if(all.some(t=>t.demo))h+='<div class="row mt"><button class="btn sm" data-act="clear-demo">Remover exemplos</button></div>';
+  return h;
+}
+
+/* --- Operação --- */
+const calcBox=(k,v,u,cls)=>'<div class="'+(cls||'')+'"><div class="k">'+k+'</div><div class="v">'+v+'<span class="u">'+u+'</span></div></div>';
+const nz=n=>n==null?'—':fmtN(n);
+const STAGE_HELP={
+  e1:'Pátio: fotografe o caminhão vazio, a balança (tara), a CNH, o CRLV, o caminhão carregado e a balança. Só é possível substituir a foto: não há correção manual nesta etapa.',
+  e2:'Anexe o MTR e a NF-e emitidos (foto, captura ou PDF). Se houver inconsistência, o app gera um alerta e a etapa segue.',
+  e3:'Depois da limpeza, o sucateiro pesa no pátio dele: anexe o print da balança, o MTR final e a NF final (foto, captura ou PDF).',
+  e4:'Anexe o comprovante do depósito (foto ou PDF) ou digite o valor recebido. A operação só é concluída com o depósito reconhecido.'
+};
+function vTicket(t){
+  const s=statusOf(t),c=calc(t),al=alerts(t,S.tickets),T=TIPO[t.tipo],isDone=s.ph==='concluida',cur=s.ph;
+  let h='<div class="opbar '+T.cls+'"><span class="ico" style="color:var(--'+T.cls+')">'+ic(T.ico)+'</span><div style="flex:1;min-width:0"><div class="t">'+T.label+' · '+esc(placaOf(t)?fmtPlate(placaOf(t)):'sem placa')+'</div><div class="s">'+t.num+' · '+esc(s.label)+(t.cliente?' · '+esc(t.cliente):'')+(t.demo?' · exemplo':'')+(t.hist?' · importado da planilha':'')+'</div></div><button class="btn sm" data-act="back">'+ic('back')+'Voltar</button></div>';
+  if(isDone)h+='<div class="card done"><div class="big">'+ic('check')+'</div><h2>Depósito reconhecido</h2><div class="muted">Operação concluída · '+T.label+' · '+dtm(t.atualizadoEm)+'</div><div class="proto">'+esc(t.num)+'</div><div class="muted" style="font-size:14px">Guarde este número junto com as NFs, os MTRs e o comprovante.</div></div>';
+  if(t.hist)h+='<div class="note mt"><b>Operação importada</b> da planilha CONTROLE VENDA DE SUCATA, sem fotos. Registro apenas histórico.</div>';
+  if(t.obsHist)h+='<div class="note mt"><b>Planilha:</b> '+esc(t.obsHist)+'</div>';
+  if(ST.fixPh&&ST.tid===t.id&&!t.hist){
+    const fph=ST.fixPh,keys=orderOf(t).filter(k=>STEPS[k].ph===fph&&!((k==='mtr2'||k==='nf2')&&c.qtd2!=null&&c.qtd2<=0));
+    const mine=al.filter(a=>a.key&&STEPS[a.key]&&STEPS[a.key].ph===fph);
+    h+='<h2 class="sec"><span class="n">'+ic('edit')+'</span>Correção · '+esc(phaseName(t,fph))+'</h2><div class="note" style="margin-bottom:12px">Troque a foto ou envie outro arquivo no item indicado. Os dados são lidos de novo e o alerta some se a divergência for resolvida.</div>';
+    if(mine.length)h+='<div class="alert warn" role="alert"><b>Alertas desta etapa ('+mine.length+')</b><ul>'+mine.map(a=>'<li><span>'+esc(a.txt)+'</span></li>').join('')+'</ul></div>';
+    h+='<div class="tiles">'+keys.map(k=>tileHtml(t,k)).join('')+'</div>';
+    h+='<div class="sticky-cta"><button class="btn acc block" data-act="back">'+ic('back')+(ST.tab==='alert'?'Voltar aos alertas':'Concluir correção')+'</button></div>';
+    return h;
+  }
+  const bads=al.filter(a=>a.lvl==='bad'),warns=al.filter(a=>a.lvl==='warn');
+  const li=a=>'<li><span>'+esc(a.txt)+'</span>'+(a.act==='swap'&&cur==='e1'?'':'')+(a.key&&STEPS[a.key]&&!t.hist?'<button class="btn sm" data-act="fix" data-id="'+t.id+'" data-key="'+a.key+'">Corrigir</button>':'')+(a.open?'<button class="btn sm" data-act="open" data-id="'+a.open+'">Abrir</button>':'')+'</li>';
+  if(bads.length)h+='<div class="alert" role="alert"><b>Revise ('+bads.length+')</b><ul>'+bads.map(li).join('')+'</ul></div>';
+  if(warns.length)h+='<div class="alert warn" role="alert"><b>Atenção ('+warns.length+')</b><ul>'+warns.map(li).join('')+'</ul></div>';
+  h+='<div class="calc-t">Pesagem</div><div class="calc" aria-live="polite">'+calcBox('Tara',nz(c.tara),'kg')+calcBox('Carregado',nz(c.bruta),'kg')+calcBox('Líquido',nz(c.liq),'kg','hot')+'</div>';
+  h+='<div class="calc-t">Valor</div><div class="calc" aria-live="polite">'+calcBox('Sucateiro','<span style="font-size:20px">'+esc(t.cliente||'—')+'</span>','')+calcBox('Preço',brl(c.preco),'/kg')+calcBox('Previsto',(t.tipo==='suja'&&c.liqLimpo!=null?brl(c.liqLimpo*c.preco):(c.liq!=null?brl(c.liq*c.preco):'—')),'','hot')+(expectedDeposit(t)!=null?calcBox('Em notas',brl(expectedDeposit(t)),''):'')+'</div>';
+  if(t.tipo==='suja'&&(c.ret!=null||cur==='e3'||cur==='e4'||isDone))
+    h+='<div class="calc-t">Após a limpeza</div><div class="calc" aria-live="polite">'+calcBox('Pós-limpeza',nz(c.ret),'kg')+calcBox('Líquido limpo',nz(c.liqLimpo),'kg','hot')+calcBox('Já faturado',nz(c.qtd1),'kg')+calcBox('Complementar',nz(c.qtd2),'kg',c.qtd2!=null&&c.qtd2<=0?'neg':'hot')+'</div>';
+  const phs=PHASES[t.tipo];
+  phs.forEach((ph,i)=>{
+    const conc=etapaDone(t,ph),isCur=ph===cur,n=stageNum(t,ph),keys=orderOf(t).filter(k=>STEPS[k].ph===ph);
+    if(!isCur){
+      if(!conc||t.hist)return;
+      const e=t.etapas&&t.etapas[ph],last=phs[i+1]===undefined?true:!etapaDone(t,phs[i+1]);
+      h+='<div class="card pad" style="margin-top:12px"><div class="row" style="align-items:center"><span class="n" style="flex:none;color:var(--ok)">'+ic('check')+'</span><div style="flex:1;min-width:0"><b>'+esc(phaseName(t,ph))+'</b><div class="muted" style="font-size:13px">'+(e?'Concluída por '+esc(e.por||'—')+' em '+dtm(e.em)+'.':'Concluída.')+'</div></div>'+(last&&t.etapas&&!isDone?'<button class="btn sm" style="flex:none" data-act="reopen" data-id="'+t.id+'" data-ph="'+ph+'">Reabrir</button>':'')+'</div></div>';
+      return}
+    h+='<h2 class="sec'+(conc?' ok':'')+'"><span class="n">'+(conc?ic('check'):n)+'</span>'+esc(phaseName(t,ph))+'</h2>';
+    if(!conc&&!isCur){h+='<div class="note">Disponível depois de concluir a '+esc(PH_NAME[phs[i-1]]?phaseName(t,phs[i-1]).split(' · ')[0]:'etapa anterior')+'.</div>';return}
+    if(isCur){
+      h+='<div class="note'+(ph!=='e1'?' wait':'')+'" style="margin-bottom:12px">'+esc(STAGE_HELP[ph])+'</div>';
+      if(ph!=='e4'||true)h+='<div class="row" style="margin-bottom:12px"><label class="btn" style="position:relative;flex:none">'+ic('stack')+'Importar vários arquivos<input class="hid" type="file" accept="'+(ph==='e1'?'image/*':'image/*,application/pdf')+'" multiple data-batch="'+t.id+'"></label>'+(ST.batch?'<span class="muted" style="align-self:center">Lendo '+ST.batch.i+' de '+ST.batch.n+'…</span>':'<span class="muted" style="align-self:center;font-size:13px">O app separa cada foto no item certo.</span>')+'</div>';
+    }
+    h+='<div class="tiles">'+keys.filter(k=>!((k==='mtr2'||k==='nf2')&&c.qtd2!=null&&c.qtd2<=0)).map(k=>tileHtml(t,k)).join('')+'</div>';
+    if(isCur){
+      const miss=reqSteps(t,ph).filter(k=>!done(t,k)),can=!miss.length;
+      h+='<div class="sticky-cta" style="margin-top:14px"><button class="btn acc block" data-act="conclude" data-id="'+t.id+'" data-ph="'+ph+'"'+(can?'':' disabled')+'>'+ic('check')+'Concluir etapa 0'+n+'</button>'+(can?'':'<div class="muted" style="font-size:13px;text-align:center">Faltam: '+miss.map(k=>esc(stepTitle(t,k))).join(', ')+'</div>')+'</div>';
+    }else if(conc&&!t.hist){
+      const e=t.etapas&&t.etapas[ph],last=phs[i+1]===undefined?true:!etapaDone(t,phs[i+1]);
+      h+='<div class="muted" style="font-size:13px;margin-top:10px">'+(e?'Concluída por '+esc(e.por||'—')+' em '+dtm(e.em)+'.':'Concluída.')+'</div>'+(last&&t.etapas?'<div class="row mt"><button class="btn sm" data-act="reopen" data-id="'+t.id+'" data-ph="'+ph+'" style="flex:none">Reabrir etapa</button></div>':'');
+    }
+  });
+  const ev=timelineRows(t);
+  h+='<h2 class="sec"><span class="n">'+ic('clock')+'</span>Registro</h2><div class="card pad"><dl class="dl">'+ev.map(e=>'<dt>'+dtm(e[0])+'</dt><dd>'+esc(e[1])+'</dd>').join('')+'</dl></div>';
+  h+='<div class="sticky-cta"><button class="btn" data-act="copy-sum" data-id="'+t.id+'">'+ic('copy')+(ST.copied==='sum'?'Resumo copiado':'Copiar resumo da operação')+'</button>'+(can('operacoes:excluir')?'<button class="btn danger" data-act="del" data-id="'+t.id+'">'+ic('trash')+'Excluir operação</button>':'')+'</div>';
+  return h;
+}
+function timelineRows(t){
+  const ev=[[t.criadoEm,'Operação aberta'+(t.controlador?' por '+t.controlador:'')]];
+  for(const k of orderOf(t)){const d=L(t,k);if(d&&d.em)ev.push([d.em,stepTitle(t,k)+': '+readLine(t,k)+(d.manual?' (informado à mão)':'')+(d.por?' · '+d.por:'')])}
+  if(t.etapas)for(const ph of PHASES[t.tipo]){const e=t.etapas[ph];if(e&&e.em)ev.push([e.em,stageTag(t,ph)+' concluída'+(e.por?' por '+e.por:'')])}
+  return ev.sort((a,b)=>a[0]-b[0]);
+}
+function readLine(t,k){
+  const d=L(t,k);if(!d)return'';
+  switch(STEPS[k].kind){
+    case'caminhao':return'placa '+fmtPlate(d.placa)+(d.frota?' · '+d.frota:'');
+    case'visor':return fmtKg(d.kg);
+    case'cnh':return (d.nome||'—')+(d.validade&&parseDate(d.validade)?' · válida até '+dts(parseDate(d.validade)):'');
+    case'crlv':return 'placa '+fmtPlate(d.placa)+(d.exercicio?' · exercício '+d.exercicio:'');
+    case'mtr':return 'nº '+(d.numero||'—')+' · '+(d.qtdTon!=null?fmtTon(d.qtdTon*1000)+' t':'—');
+    case'nf':return 'nº '+(d.numero||'—')+' · '+fmtKg(d.qtdKg)+(d.valorTotal!=null?' · '+brl(d.valorTotal):'');
+    case'deposito':return brl(d.valor)+(d.data&&parseDate(d.data)?' · crédito em '+dts(parseDate(d.data)):'')+(d.obs?' · '+d.obs:'');
+  }
+  return'';
+}
+function packHtml(t,k){
+  const w=k.endsWith('2')?'2':'1',kind=STEPS[k].kind,rows=kind==='mtr'?pkgMTR(t,w):pkgNF(t,w),id='pk'+k;
+  const ready=kind==='mtr'||done(t,w==='2'?'mtr2':'mtr1');
+  return '<div class="card pack"><div class="pack-h"><span>'+(kind==='mtr'?'Dados para emitir o MTR':'Dados para emitir a NF-e')+'</span><button class="btn sm" data-act="copy-pack" data-k="'+k+'" data-id="'+t.id+'">'+ic('copy')+(ST.copied===id?'Copiado':'Copiar tudo')+'</button></div>'+
+   (ready?'':'<div class="pk"><dd class="muted">Fotografe o MTR antes: a NF cita o número dele nas informações complementares.</dd></div>')+
+   '<dl style="margin:0">'+rows.map((r,i)=>'<div class="pk"><dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd><button class="cp'+(ST.copied===id+i?' ok':'')+'" data-act="copy-row" data-k="'+k+'" data-i="'+i+'" data-id="'+t.id+'" aria-label="Copiar '+esc(r[0])+'">'+ic(ST.copied===id+i?'check':'copy')+'</button></div>').join('')+'</dl></div>';
+}
+function tileHtml(t,k){
+  const S_=STEPS[k],d=L(t,k),ph=S_.ph,editable=ph===phaseOf(t)||(ST.fixPh===ph&&ST.tid===t.id&&!t.hist),strict=ph==='e1',nk=curStep(t),isNext=k===nk;
+  const busy=ST.busy&&ST.busy.tid===t.id&&(ST.busy.key===k||(!ST.busy.key&&isNext));
+  const man=ST.manual&&ST.manual.tid===t.id&&ST.manual.key===k?ST.manual:null;
+  const er=ST.err&&ST.err.tid===t.id&&ST.err.key===k?ST.err:null;
+  const url=photoURL(t,k),pdfU=isPdf(t,k)?fileURL(t,k):null,upl=DOCK.includes(S_.kind)||S_.ph!=='e1';
+  const al=alerts(t,S.tickets).some(a=>a.key===k&&a.lvl==='bad');
+  const shot=busy?'<div class="spin" role="status" aria-label="Processando"></div>':pdfU?'<a href="'+esc(pdfU)+'" target="_blank" rel="noopener" style="display:grid;place-items:center;gap:4px;color:var(--primary);font-weight:700;font-size:13px;text-align:center">'+ic('doc').replace('class="ic"','class="ic" style="width:34px;height:34px"')+'Abrir PDF</a>':url?'<img src="'+esc(url)+'" alt="Foto: '+esc(stepTitle(t,k))+'" data-act="lb" data-src="'+esc(url)+'">':ic(KIND_IC[S_.kind]).replace('class="ic"','class="ic" style="width:34px;height:34px"');
+  let body='<h3>'+esc(stepTitle(t,k))+(d?'<span class="chk">'+ic('check')+'</span>':'')+'</h3>';
+  if(d){
+    body+=S_.kind==='visor'?'<div class="rd">'+(d.kg!=null?fmtN(d.kg):'—')+' <small>kg</small></div>':'<p>'+esc(readLine(t,k))+'</p>';
+    body+=d.hist?'<div class="aist warn">'+ic('doc')+'Importado da planilha.</div>':d.inc?'<div class="aist warn">'+ic('warn')+'Anexado, dados não lidos.</div>':d.manual?'<div class="aist warn">'+ic('edit')+'Informado à mão.</div>':'<div class="aist ok">'+ic('check')+'Dados lidos. Confira.</div>';
+  }else if(!editable)body+='<p>Não registrado.</p>';
+  else body+='<p>'+esc(S_.h)+'</p>';
+  if(busy)body+='<div class="aist busy"><span class="spin sm"></span>'+esc(ST.busy.msg)+'</div>';
+  else if(er)body+='<div class="aist bad">'+ic('warn')+esc(er.msg)+'</div>';
+  else if(man&&man.msg)body+='<div class="aist bad">'+ic('warn')+esc(man.msg)+'</div>';
+  if(!busy&&editable){
+    const inp=(from,cap,redo)=>'<input class="hid" type="file" accept="image/*"'+(cap?' capture="environment"':'')+' data-cap="'+k+'" data-id="'+t.id+'" data-from="'+from+'"'+(redo?' data-redo="1"':'')+'>';
+    const upIn=redo=>'<input class="hid" type="file" accept="image/*,application/pdf" data-cap="'+k+'" data-id="'+t.id+'" data-from="up"'+(redo?' data-redo="1"':'')+'>';
+    const UPI=ic('out').replace('M5 19L19 5M9 5h10v10','M12 16V4M7 9l5-5 5 5M5 20h14');
+    const fixB=lab=>ST.fixPh?'':'<button class="btn sm" data-act="inform" data-id="'+t.id+'" data-key="'+k+'">'+ic('edit')+lab+'</button>';
+    let b='';
+    if(upl)b=d?'<label class="btn sm" style="position:relative">'+UPI+'Substituir arquivo'+upIn(1)+'</label>':'<label class="btn pri" style="position:relative">'+UPI+'Anexar arquivo'+upIn(0)+'</label>'+fixB(S_.kind==='deposito'?'Digitar valor':'Informar');
+    else if(strict)b=d?'<label class="btn sm" style="position:relative">'+ic('camera')+'Refazer foto'+inp('cam',1,1)+'</label><label class="btn sm" style="position:relative">'+ic('stack')+'Da galeria'+inp('gal',0,1)+'</label>'+(!ST.sample&&d.inc?fixB('Informar'):''):'<label class="btn '+(isNext?'pri':'sm')+'" style="position:relative">'+ic('camera')+'Fotografar'+inp('cam',1)+'</label><label class="btn sm" style="position:relative">'+ic('stack')+'Galeria'+inp('gal',0)+'</label>';
+    else b=d?'<label class="btn sm" style="position:relative">'+ic('camera')+'Refazer foto'+inp('cam',1,1)+'</label>':'<label class="btn '+(isNext?'pri':'sm')+'" style="position:relative">'+ic('camera')+'Fotografar'+inp('cam',1)+'</label><label class="btn sm" style="position:relative">'+ic('stack')+'Galeria'+inp('gal',0)+'</label>'+fixB('Informar');
+    body+='<div class="btns">'+b+'</div>';
+  }
+  let h='<div class="card tile'+(d?' ok':'')+(al||er||(man&&!d)?' err':'')+'" id="tile-'+k+'"><div class="shot">'+shot+'</div><div>'+body+'</div></div>';
+  if(man)h+=manualForm(t,k,man);
+  if(editable&&!d&&(S_.kind==='mtr'||S_.kind==='nf'))h+=packHtml(t,k);
+  return h;
+}
+function manualForm(t,k,m){
+  const kind=STEPS[k].kind,v=m.vals||{},u=photoURL(t,k);
+  const inputs=FIELDS[kind].map(([f,l,ty])=>{const val=v[f]==null?'':String(v[f]);
+    return '<div class="f"><label for="mf-'+f+'">'+esc(l)+(REQUIRED[kind].includes(f)?' <span class="rq">*</span>':'')+'</label><input id="mf-'+f+'" name="'+f+'" type="'+(ty==='number'?'text':ty)+'" '+(ty==='number'?'inputmode="decimal" ':'')+'value="'+esc(val)+'" autocomplete="off"'+(f==='placa'?' class="plate" style="text-transform:uppercase"':'')+'></div>'}).join('');
+  return '<form class="card pad" data-form="1" style="margin-top:-4px">'+(u?'<img src="'+esc(u)+'" data-act="lb" data-src="'+esc(u)+'" alt="Foto para conferir" style="width:100%;max-height:240px;object-fit:contain;background:var(--surface2);border-radius:10px;margin-bottom:12px;cursor:zoom-in">':'')+
+   '<div class="grid">'+inputs+'</div><div class="row mt"><button class="btn acc" type="submit">'+ic('check')+(kind==='deposito'?'Reconhecer depósito':'Confirmar')+'</button><button class="btn" type="button" data-act="manual-cancel">Cancelar</button></div></form>';
+}
+
+/* --- Pendências --- */
+const PEND=[
+ {ph:'e1',t:'Etapa 01 · Pátio',d:'Fotos do caminhão, das pesagens, da CNH e do CRLV.'},
+ {ph:'e2',t:'Etapa 02 · MTR e NF',d:'Anexar o MTR e a NF (iniciais na suja, finais na limpa).'},
+ {ph:'e3',t:'Etapa 03 · MTR e NF finais (suja)',d:'Aguardando a limpeza. Anexar o print da balança do sucateiro, o MTR final e a NF final.'},
+ {ph:'e4',t:'Etapa 04 · Recebimento',d:'Anexar o comprovante ou digitar o valor recebido.'}
+];
+const daysSince=t=>Math.max(0,Math.floor((Date.now()-t.atualizadoEm)/864e5));
+function vPend(){
+  const open=Object.values(S.tickets).filter(t=>phaseOf(t)!=='concluida');
+  let h='<h2 class="sec" style="margin-top:6px"><span class="n">1</span>Quem está operando</h2><div class="card pad"><div class="f"><label for="ctl">Seu nome <span class="rq">*</span></label><input id="ctl" data-ctl="1" value="'+esc(Cfg.get('nome'))+'" placeholder="Seu nome completo" autocomplete="off"></div></div>';
+  if(!open.length)return h+'<div class="card empty mt"><div class="ei">'+ic('check')+'</div><b>Nenhuma pendência</b><div style="margin-top:4px">Todas as operações estão concluídas.</div></div>';
+  const list=open.filter(t=>ST.pf==='all'||t.tipo===ST.pf);
+  const ch=(v,l)=>'<button class="chip" data-act="pf" data-v="'+v+'" aria-pressed="'+(ST.pf===v)+'">'+l+'</button>';
+  h+='<div class="chips mt">'+ch('all','Todas')+ch('suja','Sucata suja')+ch('limpa','Sucata limpa')+'</div>';
+  h+='<div class="kpis mt">'+PEND.map(g=>'<div class="card kpi"><div class="k">'+g.t.split(' · ')[0]+'</div><div class="v">'+list.filter(t=>phaseOf(t)===g.ph).length+'</div></div>').join('')+'</div>';
+  const rc=list.filter(t=>phaseOf(t)==='e4').reduce((a,t)=>a+(expectedDeposit(t)||0),0);
+  if(rc)h+='<div class="note mt">A receber no total: <b>'+brl(rc)+'</b></div>';
+  PEND.forEach(g=>{
+    const l=list.filter(t=>phaseOf(t)===g.ph).sort((a,b)=>a.atualizadoEm-b.atualizadoEm);if(!l.length)return;
+    h+='<h2 class="sec"><span class="n">'+l.length+'</span>'+g.t+'</h2><div class="muted" style="font-size:13.5px;margin:-4px 0 10px">'+g.d+'</div>'+l.map(recItem).join('');
+  });
+  if(!list.length)h+='<div class="card empty mt"><b>Nenhuma pendência neste filtro</b></div>';
+  return h;
+}
+/* --- Alertas --- */
+function allAlerts(){
+  return Object.values(S.tickets).filter(t=>!t.hist).map(t=>({t,al:alerts(t,S.tickets)})).filter(x=>x.al.length)
+    .sort((a,b)=>(b.al.some(z=>z.lvl==='bad')-a.al.some(z=>z.lvl==='bad'))||b.t.atualizadoEm-a.t.atualizadoEm);
+}
+function vAlert(){
+  const l=allAlerts();
+  if(!l.length)return'<div class="card empty"><div class="ei">'+ic('check')+'</div><b>Nenhum alerta</b><div style="margin-top:4px">As inconsistências encontradas nas etapas aparecem aqui.</div></div>';
+  const n=l.reduce((a,x)=>a+x.al.length,0);
+  return'<div class="note" style="margin-bottom:12px"><b>'+n+'</b> alerta'+(n>1?'s':'')+' em <b>'+l.length+'</b> operaç'+(l.length>1?'ões':'ão')+'. As etapas seguem normalmente; toque em Corrigir para ir direto ao item e trocar a foto ou o arquivo.</div>'+
+   l.map(({t,al})=>'<div class="card pad" style="margin-bottom:12px"><div class="row" style="align-items:center;margin-bottom:8px"><div style="flex:1;min-width:0"><span class="pill '+TIPO[t.tipo].cls+'">'+(t.tipo==='suja'?'Suja':'Limpa')+'</span> <b class="plate" style="font-size:18px">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</b><div class="muted" style="font-size:13px">'+esc(t.num)+' · '+esc(statusOf(t).label)+(t.cliente?' · '+esc(t.cliente):'')+'</div></div></div><ul style="margin:0;padding:0;list-style:none;display:grid;gap:10px">'+
+    al.map(a=>'<li style="display:flex;gap:8px;align-items:flex-start"><span class="pill '+(a.lvl==='bad'?'bad':'wait')+'" style="flex:none">'+(a.lvl==='bad'?'Revise':'Atenção')+'</span><span style="font-size:14.5px;flex:1">'+esc(a.txt)+'</span>'+(a.key&&STEPS[a.key]?'<button class="btn sm" style="flex:none" data-act="fix" data-id="'+t.id+'" data-key="'+a.key+'">Corrigir</button>':'<button class="btn sm" style="flex:none" data-act="open" data-id="'+(a.open||t.id)+'">Abrir</button>')+'</li>').join('')+'</ul></div>').join('');
+}
+
+/* --- Histórico --- */
+function filtered(){
+  const q=ST.q.trim().toUpperCase(),qp=normPlate(q);
+  const from=ST.range==='all'?0:(ST.range==='today'?new Date().setHours(0,0,0,0):Date.now()-Number(ST.range)*864e5);
+  return Object.values(S.tickets).filter(t=>(ST.hf==='all'||t.tipo===ST.hf)&&(ST.hs==='all'||(ST.hs==='abertas')===(phaseOf(t)!=='concluida'))&&t.criadoEm>=from&&
+    (!q||t.num.includes(q)||(t.cliente||'').toUpperCase().includes(q)||(placaOf(t)||'').includes(qp)||(motoristaOf(t)||'').toUpperCase().includes(q)||['nf1','nf2','mtr1','mtr2'].some(k=>L(t,k)&&String(L(t,k).numero||'').includes(q)))).sort((a,b)=>b.atualizadoEm-a.atualizadoEm);
+}
+function histList(list){
+  return list.length?list.map(recItem).join(''):'<div class="card empty"><div class="ei">'+ic('list')+'</div><b>'+(Object.keys(S.tickets).length?'Nenhuma operação com esses filtros':'Nenhuma operação neste aparelho')+'</b><div style="margin-top:4px">Troque o período ou limpe a busca.</div></div>';
+}
+function vHist(){
+  const list=filtered(),kgT=list.reduce((a,t)=>a+(calc(t).liq||0),0);
+  const ch=(act,key,val,cur,l)=>'<button class="chip" data-act="'+act+'" data-v="'+val+'" aria-pressed="'+(cur===val)+'">'+l+'</button>';
+  return '<div class="toolbar"><div class="search">'+ic('search')+'<input id="q" type="search" placeholder="Buscar placa, motorista, NF, MTR ou nº" value="'+esc(ST.q)+'" aria-label="Buscar operações"></div>'+
+   '<div class="chips">'+[['all','Todas'],['suja','Suja'],['limpa','Limpa']].map(x=>ch('hf','hf',x[0],ST.hf,x[1])).join('')+'</div>'+
+   '<div class="chips">'+[['all','Qualquer situação'],['abertas','Abertas'],['concluidas','Concluídas']].map(x=>ch('hs','hs',x[0],ST.hs,x[1])).join('')+'</div>'+
+   '<div class="chips">'+[['today','Hoje'],['7','7 dias'],['30','30 dias'],['all','Todo o período']].map(x=>ch('range','range',x[0],ST.range,x[1])).join('')+'</div></div>'+
+   '<div class="note" style="margin-bottom:12px" id="histnote"><b>'+list.length+'</b> '+(list.length===1?'operação':'operações')+' · <b>'+nf2(kgT/1000)+' t</b> de peso líquido</div>'+
+   '<div id="reclist">'+histList(list)+'</div>'+(list.length?'<div class="row mt"><button class="btn" data-act="csv">'+ic('download')+'Exportar CSV ('+list.length+')</button></div>':'');
+}
+const nf2=n=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* --- Painel --- */
+const SUCCOL=['var(--ret)','var(--mob)','var(--ok)','#8B5CF6','var(--accent)','#0E9AA7'];
+const kfmt=v=>v>=1000?(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k':String(Math.round(v));
+let LCID=0;
+function niceMax(v){const e=Math.pow(10,Math.floor(Math.log10(Math.max(v,1)))),f=v/e,n=f<=1?1:f<=2?2:f<=5?5:10;return n*e}
+function monoPath(pts){
+  const n=pts.length;if(n<2)return'';
+  const dx=[],dy=[],m=[];for(let i=0;i<n-1;i++){dx.push(pts[i+1][0]-pts[i][0]);dy.push((pts[i+1][1]-pts[i][1])/(pts[i+1][0]-pts[i][0]))}
+  m.push(dy[0]);for(let i=1;i<n-1;i++)m.push(dy[i-1]*dy[i]<=0?0:(dy[i-1]+dy[i])/2);m.push(dy[n-2]);
+  for(let i=0;i<n-1;i++){if(dy[i]===0){m[i]=0;m[i+1]=0}else{const a=m[i]/dy[i],b=m[i+1]/dy[i],h=a*a+b*b;if(h>9){const t=3/Math.sqrt(h);m[i]=t*a*dy[i];m[i+1]=t*b*dy[i]}}}
+  let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);
+  for(let i=0;i<n-1;i++){const h=dx[i]/3;d+=' C'+(pts[i][0]+h).toFixed(1)+','+(pts[i][1]+m[i]*h).toFixed(1)+' '+(pts[i+1][0]-h).toFixed(1)+','+(pts[i+1][1]-m[i+1]*h).toFixed(1)+' '+pts[i+1][0].toFixed(1)+','+pts[i+1][1].toFixed(1)}
+  return d;
+}
+function lineChart(labels,series,aria,area){
+  const W=360,H=210,L=40,R=14,T=14,B=26,iw=W-L-R,ih=H-T-B,n=labels.length;
+  const mx=niceMax(Math.max(1,...series.flatMap(x=>x.vals))),id='lc'+(++LCID);
+  const X=i=>L+(n===1?iw/2:iw*i/(n-1)),Y=v=>T+ih-ih*v/mx;
+  let g='';
+  for(let k=0;k<=4;k++){const v=mx*k/4,y=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="0.5" stroke-opacity=".7"'+(k?' stroke-dasharray="2 4"':'')+'/><text x="'+(L-6)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="9" fill="var(--muted)" font-weight="400">'+(v?kfmt(v):'0')+'</text>'}
+  g+=labels.map((l,i)=>'<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-weight="400">'+l+'</text>').join('');
+  let defs='',body='';
+  series.forEach((x,si)=>{
+    const pts=x.vals.map((v,i)=>[X(i),Y(v)]),d=monoPath(pts);
+    if(area){defs+='<linearGradient id="'+id+'g'+si+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:'+x.color+';stop-opacity:.14"/><stop offset="1" style="stop-color:'+x.color+';stop-opacity:0"/></linearGradient>';
+      if(n>1)body+='<path d="'+d+' L'+X(n-1)+','+Y(0)+' L'+X(0)+','+Y(0)+' Z" fill="url(#'+id+'g'+si+')"/>'}
+    if(n>1)body+='<path d="'+d+'" fill="none" stroke="'+x.color+'" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>';
+    body+=pts.map((q,i)=>'<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+(i===n-1?2.2:1.6)+'" fill="'+x.color+'"><title>'+esc(x.name+' · '+labels[i]+': '+brl(x.vals[i]))+'</title></circle>').join('');
+  });
+  const cur=series.map(x=>{const v=x.vals[n-1],p=n>1?x.vals[n-2]:0,dl=p?Math.round((v-p)/p*100):null;
+    return'<span class="lchip"><i style="background:'+x.color+'"></i><span>'+esc(x.name)+'<b>'+brl(v)+'</b>'+(dl!=null?'<em class="'+(dl>=0?'up':'dn')+'">'+(dl>=0?'▲':'▼')+' '+Math.abs(dl)+'%</em>':'')+'</span></span>'}).join('');
+  return'<svg class="lsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(aria)+'"><defs>'+defs+'</defs>'+g+body+'</svg><div class="lcur"><div class="lcur-t">'+labels[n-1]+' · variação sobre o mês anterior</div>'+cur+'</div>';
+}
+function evolucao(all){
+  const ev=[];
+  for(const t of all){const c=calc(t);
+    for(const k of['nf1','nf2']){const d=L(t,k);if(d)ev.push({m:mkey(d.em||t.atualizadoEm),suc:t.cliente||'Sem sucateiro',fat:d.valorTotal!=null?d.valorTotal:(d.qtdKg||0)*c.preco,rec:0})}
+    const dp=L(t,'deposito');if(dp)ev.push({m:mkey(dp.em||t.atualizadoEm),suc:t.cliente||'Sem sucateiro',fat:0,rec:dp.valor||0});}
+  if(!ev.length)return'<div class="card empty"><div class="ei">'+ic('chart')+'</div><b>Sem valores lançados ainda</b></div>';
+  const now=mkey(Date.now()),first=Math.min(...ev.map(e=>e.m)),ms=[];for(let m=first;m<=now;m++)ms.push(m);
+  const lab=ms.map(m=>MES[m%12]+'/'+String(Math.floor(m/12)).slice(2));
+  const sum=(f,m,suc)=>ev.filter(e=>e.m===m&&(!suc||e.suc===suc)).reduce((a,e)=>a+f(e),0);
+  const sucs=[...new Set(ev.map(e=>e.suc))].sort((a,b)=>ev.filter(e=>e.suc===b).reduce((x,e)=>x+e.fat,0)-ev.filter(e=>e.suc===a).reduce((x,e)=>x+e.fat,0));
+  const tf=ev.reduce((a,e)=>a+e.fat,0),tr=ev.reduce((a,e)=>a+e.rec,0);
+  return'<div class="note" style="margin-bottom:12px">Faturado total: <b>'+brl(tf)+'</b> · Recebido: <b>'+brl(tr)+'</b> · Em aberto: <b>'+brl(tf-tr)+'</b></div>'+
+   '<div class="card pad">'+lineChart(lab,[{name:'Faturado (NFs)',color:'var(--mob)',vals:ms.map(m=>sum(e=>e.fat,m))},{name:'Recebido (depósitos)',color:'var(--ok)',vals:ms.map(m=>sum(e=>e.rec,m))}],'Evolução mensal em reais: faturado e recebido',true)+'</div>'+
+   '<h2 class="sec">Faturado por empresa (R$ por mês)</h2><div class="card pad">'+lineChart(lab,sucs.map((n,i)=>({name:n,color:SUCCOL[i%SUCCOL.length],vals:ms.map(m=>sum(e=>e.fat,m,n))})),'Evolução mensal em reais por sucateiro')+'</div>'+
+   '<h2 class="sec">Recebido por empresa (R$ por mês)</h2><div class="card pad">'+lineChart(lab,sucs.map((n,i)=>({name:n,color:SUCCOL[i%SUCCOL.length],vals:ms.map(m=>sum(e=>e.rec,m,n))})),'Evolução mensal dos recebimentos por sucateiro')+'</div>';
+}
+const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const mkey=ms=>{const d=new Date(ms);return d.getFullYear()*12+d.getMonth()};
+function porSuc(all){
+  const g={};
+  for(const t of all){const k=t.cliente||'Sem sucateiro',x=g[k]||(g[k]={n:0,kg:0,fat:0,rec:0,ar:0,preco:calc(t).preco});x.n++;
+    for(const n of['nf1','nf2']){const d=L(t,n);if(d){x.kg+=d.qtdKg||0;x.fat+=d.valorTotal!=null?d.valorTotal:(d.qtdKg||0)*calc(t).preco}}
+    const dp=L(t,'deposito');if(dp)x.rec+=dp.valor||0;else if(phaseOf(t)==='e4')x.ar+=expectedDeposit(t)||0;}
+  const r=Object.entries(g).sort((a,b)=>b[1].fat-a[1].fat);
+  if(!r.length)return'<div class="empty" style="padding:18px">Sem operações.</div>';
+  return'<table class="tbl" style="font-size:13px"><thead><tr><th>Sucateiro</th><th class="r">R$/kg</th><th class="r">Op.</th><th class="r">Faturado</th><th class="r">Recebido</th><th class="r">A receber</th></tr></thead><tbody>'+r.map(([k,x])=>'<tr><td><b>'+esc(k)+'</b></td><td class="r">'+brl((((S.cfg.sucateiros||[]).find(z=>z.nome===k))||x).precoKg||x.preco)+'</td><td class="r">'+x.n+'</td><td class="r">'+brl(x.fat)+'</td><td class="r">'+brl(x.rec)+'</td><td class="r">'+(x.ar?brl(x.ar):'—')+'</td></tr>').join('')+'</tbody></table><div class="muted" style="font-size:12.5px;margin-top:8px">Faturado = valor das NFs. R$/kg é o preço atual do cadastro.</div>';
+}
+function vPanel(){
+  const all=Object.values(S.tickets),open=all.filter(t=>phaseOf(t)!=='concluida'),wait=all.filter(t=>phaseOf(t)==='e3'&&!done(t,'pesagemRetorno'));
+  const today=dkey(new Date()),mo=new Date().getMonth(),yr=new Date().getFullYear();
+  const doneToday=all.filter(t=>phaseOf(t)==='concluida'&&dkey(t.atualizadoEm)===today).length;
+  const docs=[];for(const t of all){const c=calc(t);for(const k of['nf1','nf2']){const d=L(t,k);if(d)docs.push({tipo:t.tipo,at:d.em||t.atualizadoEm,kg:d.qtdKg||0,v:d.valorTotal!=null?d.valorTotal:(d.qtdKg||0)*c.preco})}}
+  const sum=a=>a.reduce((s,x)=>s+x.kg,0);
+  const kgM=sum(docs.filter(x=>{const d=new Date(x.at);return d.getMonth()===mo&&d.getFullYear()===yr})),vM=docs.filter(x=>{const d=new Date(x.at);return d.getMonth()===mo&&d.getFullYear()===yr}).reduce((s,x)=>s+x.v,0);
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d)}
+  const data=days.map(d=>{const k=dkey(d),r=docs.filter(x=>dkey(x.at)===k);return{d,ret:sum(r.filter(x=>x.tipo==='suja')),mob:sum(r.filter(x=>x.tipo==='limpa'))}});
+  const mx=Math.max(1,...data.map(x=>Math.max(x.ret,x.mob)));
+  const bars=data.map(x=>'<div class="day"><div class="bars">'+['ret','mob'].map(k=>'<div class="b '+k+'" style="height:'+(x[k]?Math.max(3,x[k]/mx*100):0)+'%">'+(x[k]?'<span>'+(x[k]/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'</span>':'')+'</div>').join('')+'</div></div>').join('');
+  const xl=data.map(x=>'<div>'+x.d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')+'<br>'+String(x.d.getDate()).padStart(2,'0')+'/'+String(x.d.getMonth()+1).padStart(2,'0')+'</div>').join('');
+  wait.sort((a,b)=>a.atualizadoEm-b.atualizadoEm);
+  return '<div class="kpis"><div class="card kpi"><div class="k">Em andamento</div><div class="v">'+(open.length-wait.length)+'</div></div>'+
+   '<div class="card kpi"><div class="k">Aguardando limpeza</div><div class="v" style="color:var(--warn)">'+wait.length+'</div></div>'+
+   '<div class="card kpi"><div class="k">Concluídas hoje</div><div class="v" style="color:var(--ok)">'+doneToday+'</div></div>'+
+   '<div class="card kpi"><div class="k">Faturado no mês</div><div class="v">'+(kgM/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' <small>t</small></div></div></div>'+
+   '<div class="note mt">A receber: <b>'+brl(all.filter(t=>phaseOf(t)==='e4').reduce((a,t)=>a+(expectedDeposit(t)||0),0))+'</b> · Recebido no mês: <b>'+brl(all.reduce((a,t)=>{const d=L(t,'deposito');return a+(d&&d.em&&new Date(d.em).getMonth()===mo&&new Date(d.em).getFullYear()===yr?d.valor||0:0)},0))+'</b> · Faturado no mês: <b>'+brl(vM)+'</b> · '+all.filter(t=>phaseOf(t)==='concluida').length+' operações concluídas no total.</div>'+
+   '<h2 class="sec">Evolução em reais</h2>'+evolucao(all)+'<h2 class="sec">Peso faturado nos últimos 7 dias (t)</h2><div class="card pad"><div class="chart" role="img" aria-label="Gráfico de barras de peso faturado por dia, sucata suja e limpa">'+bars+'</div><div class="xl">'+xl+'</div><div class="legend"><span><i style="background:var(--ret)"></i>Sucata suja</span><span><i style="background:var(--mob)"></i>Sucata limpa</span></div></div>'+
+   '<h2 class="sec">Caminhões aguardando limpeza</h2><div class="card pad" style="overflow-x:auto">'+(wait.length?'<table class="tbl"><thead><tr><th>Placa</th><th>Motorista</th><th class="r">Faturado (kg)</th><th class="r">Dias</th></tr></thead><tbody>'+wait.map(t=>'<tr><td><b>'+esc(fmtPlate(placaOf(t)))+'</b></td><td>'+esc(motoristaOf(t)||'—')+'</td><td class="r">'+fmtN(calc(t).qtd1)+'</td><td class="r">'+Math.max(0,Math.floor((Date.now()-t.atualizadoEm)/864e5))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty" style="padding:18px">Nenhum caminhão aguardando limpeza.</div>')+'</div>'+
+   '<h2 class="sec">Por sucateiro</h2><div class="card pad" style="overflow-x:auto">'+porSuc(all)+'</div><div class="row mt"><button class="btn" data-act="csv-all">'+ic('download')+'Exportar tudo (CSV)</button></div>';
+}
+
+/* --- Ajustes --- */
+function openSettings(){
+  const c=S.cfg,ro=!ST.admin&&ST.mode==='cloud';
+  const f=(id,l,v,full)=>'<div class="f '+(full?'full':'')+'"><label for="s-'+id+'">'+l+'</label><input id="s-'+id+'" name="'+id+'" value="'+esc(v)+'" '+(ro?'disabled':'')+' autocomplete="off"></div>';
+  sheet('Ajustes','<form id="setf"><div class="card pad"><div class="grid"><div class="f full"><label for="s-nome">Nome do controlador (este aparelho)</label><input id="s-nome" name="nome" value="'+esc(Cfg.get('nome'))+'" placeholder="Seu nome completo" autocomplete="off"></div></div></div>'+
+   '<h2 class="sec">Sucateiros e preço por kg</h2><p class="muted" style="margin:0 0 10px;font-size:13.5px">Cada operação usa o preço do sucateiro escolhido no registro. Para remover um, apague o nome. '+(ro?'Somente editores do app podem alterar.':'')+'</p><div class="card pad"><div class="grid">'+(c.sucateiros||[]).concat([{nome:'',cnpj:'',precoKg:''}]).map((x,i)=>'<div class="f full"><label for="sn'+i+'">'+(x.nome?'Sucateiro '+(i+1):'Novo sucateiro')+'</label><input id="sn'+i+'" name="sn'+i+'" value="'+esc(x.nome)+'" placeholder="Nome" '+(ro?'disabled':'')+' autocomplete="off"></div><div class="f"><label for="sc'+i+'">CNPJ</label><input id="sc'+i+'" name="sc'+i+'" value="'+esc(x.cnpj)+'" '+(ro?'disabled':'')+' autocomplete="off"></div><div class="f"><label for="sp'+i+'">R$ por kg</label><input id="sp'+i+'" name="sp'+i+'" inputmode="decimal" value="'+esc(String(x.precoKg).replace('.',','))+'" '+(ro?'disabled':'')+' autocomplete="off"></div>').join('')+'</div></div><h2 class="sec">Valores e textos de emissão</h2><p class="muted" style="margin:0 0 10px;font-size:13.5px">Usados nos cálculos e nos dados da NF e do MTR. '+(ro?'Somente editores do app podem alterar.':'')+'</p><div class="card pad"><div class="grid">'+
+   f('precoKg','Preço padrão por kg (R$)',String(c.precoKg).replace('.',','))+f('qtdInicialKg','NF/MTR inicial, sucata suja (kg)',c.qtdInicialKg)+f('prazoDias','Prazo da fatura (dias)',c.prazoDias)+f('local','Local',c.local)+
+   f('prodCod','Código do produto',c.produto.cod)+f('prodDesc','Descrição do produto',c.produto.desc)+f('ncm','NCM',c.produto.ncm)+f('cfop','CFOP',c.produto.cfop)+
+   f('destNome','Destinatário',c.dest.nome,1)+f('destCnpj','CNPJ do destinatário',c.dest.cnpj)+f('destIe','IE do destinatário',c.dest.ie)+f('resp','Responsável pelo MTR',c.mtr.resp)+f('cargo','Cargo',c.mtr.cargo)+
+   f('infoFiscal','Texto fiscal da NF (ICMS)',c.infoFiscal,1)+f('obs1Suja','Observação da NF inicial (suja)',c.obs1Suja,1)+f('obs2','Observação da NF complementar',c.obs2,1)+f('obs1Limpa','Observação da NF final (limpa)',c.obs1Limpa,1)+
+   '</div><p class="muted" style="font-size:12.5px;margin-bottom:0">Nas observações, {mtr}, {nfRef}, {placa} e {motorista} são preenchidos sozinhos.</p></div><div class="row mt"><button class="btn pri" type="submit">Salvar</button><a class="btn" href="/trocar-senha">Alterar senha</a><a class="btn" href="/logout">Sair'+(ST.userName?' ('+esc(ST.userName)+')':'')+'</a></div></form>');
+}
+function saveSettings(form){
+  const g=n=>{const el=form.querySelector('[name="'+n+'"]');return el?el.value.trim():''};
+  Cfg.set('nome',g('nome'));
+  const ro=!ST.admin&&ST.mode==='cloud';
+  if(!ro){
+    const c=clean(S.cfg),p=num(g('precoKg')),q=num(g('qtdInicialKg')),d=num(g('prazoDias'));
+    if(!p||p<=0||!q||q<=0){toast('Preço e quantidade inicial precisam ser maiores que zero.');return}
+    Object.assign(c,{precoKg:p,qtdInicialKg:q,prazoDias:d||0,local:g('local'),infoFiscal:g('infoFiscal'),obs1Suja:g('obs1Suja'),obs2:g('obs2'),obs1Limpa:g('obs1Limpa')});
+    Object.assign(c.produto,{cod:g('prodCod'),desc:g('prodDesc'),ncm:g('ncm'),cfop:g('cfop')});
+    Object.assign(c.dest,{nome:g('destNome'),cnpj:g('destCnpj'),ie:g('destIe')});
+    Object.assign(c.mtr,{resp:g('resp'),cargo:g('cargo')});
+    const sl=[];for(let i=0;i<40;i++){const nm=form.querySelector('[name="sn'+i+'"]');if(!nm)break;const n=nm.value.trim();if(!n)continue;const pr=num(g('sp'+i));if(!pr||pr<=0){toast('Informe o preço por kg de '+n+'.');return}sl.push({nome:n,cnpj:g('sc'+i),precoKg:pr})}
+    c.sucateiros=sl;S.cfg=c;
+    if(ST.db)ST.db.doc('config/main').set(clean(c)).catch(()=>toast('Sem permissão para salvar os ajustes na nuvem.'));else localSave();
+  }
+  closeLayer();render();toast('Ajustes salvos.');
+}
+
+/* ====================== Eventos ====================== */
+function wire(){
+  document.addEventListener('click',async e=>{
+    const el=e.target.closest('[data-act]');if(!el)return;
+    const a=el.dataset.act,id=el.dataset.id,k=el.dataset.key||el.dataset.k;
+    switch(a){
+      case'ovl':if(e.target===el)closeLayer();break;
+      case'closelayer':closeLayer();break;
+      case'closezoom':{const lb=$('.lightbox');if(lb&&(e.target===el||e.target.closest('.iconbtn')))lb.remove();break}
+      case'lb':zoom(el.dataset.src);break;
+      case'tab':go(el.dataset.tab);break;
+      case'settings':openSettings();break;
+      case'theme':Cfg.set('tema',isDark()?'light':'dark');applyTheme();render();break;
+      case'create':{const n=(document.getElementById('ctl')||{}).value||Cfg.get('nome');if(!n.trim()){toast('Informe o nome do controlador.');const c=document.getElementById('ctl');if(c)c.focus();break}
+        const sc=sucSel();if(!sc){toast('Selecione o sucateiro.');const se=document.getElementById('suc');if(se)se.focus();break}
+        Cfg.set('nome',n.trim());const t=newTicket(el.dataset.tipo,{cliente:sc.nome,cnpjCliente:sc.cnpj,preco:sc.precoKg});go('novo',t.id);break}
+      case'open':{const ot=S.tickets[id];go(ot&&phaseOf(ot)!=='e1'&&!ot.hist?'pend':(ot&&ot.hist?'hist':'novo'),id);break}
+      case'pf':ST.pf=el.dataset.v;render();break;
+      case'conclude':{if(!Cfg.get('nome')){toast('Informe seu nome em Ajustes antes de concluir.');openSettings();break}
+        const ph=el.dataset.ph;if(!canConclude(S.tickets[id],ph)){toast('Faltam itens nesta etapa.');break}
+        edit(id,t=>{if(!t.etapas){t.etapas={};for(const p of PHASES[t.tipo]){if(p===ph)break;t.etapas[p]={em:t.atualizadoEm,por:null}}}t.etapas[ph]={em:Date.now(),por:Cfg.get('nome')}});
+        const nt=S.tickets[id];toast(phaseOf(nt)==='concluida'?'Operação concluída.':'Etapa concluída. A operação foi para Pendências.');go('pend');break}
+      case'reopen':edit(id,t=>{if(!t.etapas){t.etapas={};for(const p of PHASES[t.tipo]){if(p===el.dataset.ph)break;t.etapas[p]={em:t.atualizadoEm,por:null}}}delete t.etapas[el.dataset.ph]});break;
+      case'back':if(ST.fixPh&&ST.tab!=='alert'){ST.fixPh=null;ST.fixKey=null;render();break}go(['pend','hist','alert'].includes(ST.tab)?ST.tab:'novo');break;
+      case'seed':seedDemo();render();break;
+      case'clear-demo':Object.values(S.tickets).filter(t=>t.demo).forEach(t=>deleteTicket(t.id));render();break;
+      case'skip':edit(id,t=>{t.pulou[k]=true});break;
+      case'inform':{const t=S.tickets[id];if(!t||(STEPS[k].ph==='e1'&&ST.sample))break;ST.manual={tid:id,key:k,msg:'Informe os dados do documento.',vals:{}};render();break}
+      case'fix':{const t=S.tickets[id];if(!t||!STEPS[k])break;const d=L(t,k);
+        ST.manual=null;
+        ST.tid=id;ST.fixPh=STEPS[k].ph;ST.fixKey=k;ST.err=null;if(ST.tab==='novo'&&phaseOf(t)!=='e1')ST.tab='pend';window.scrollTo(0,0);render();
+        setTimeout(()=>{const e=document.getElementById('tile-'+k);if(e)e.scrollIntoView({block:'center'})},60);break}
+      case'manual-cancel':ST.manual=null;render();break;
+      case'swap':edit(id,t=>{const x=t.leit.pesagemTara,y=t.leit.pesagemBruta;t.leit.pesagemTara=y;t.leit.pesagemBruta=x;t.qtd1=null;afterApply(t)});break;
+      case'del':if(await confirmBox('Excluir esta operação e as fotos? Esta ação não pode ser desfeita.','Excluir')){await deleteTicket(id);go('novo');toast('Operação excluída.')}break;
+      case'copy-sum':copy(summaryText(S.tickets[id]),'sum');break;
+      case'copy-pack':{const t=S.tickets[id],w=k.endsWith('2')?'2':'1',kind=STEPS[k].kind;copy(pkgText(kind==='mtr'?'DADOS PARA EMISSÃO DO MTR':'DADOS PARA EMISSÃO DA NF-e',kind==='mtr'?pkgMTR(t,w):pkgNF(t,w)),'pk'+k);break}
+      case'copy-row':{const t=S.tickets[id],w=k.endsWith('2')?'2':'1',rows=STEPS[k].kind==='mtr'?pkgMTR(t,w):pkgNF(t,w);copy(rows[+el.dataset.i][1],'pk'+k+el.dataset.i);break}
+      case'hf':ST.hf=el.dataset.v;render();break;
+      case'hs':ST.hs=el.dataset.v;render();break;
+      case'range':ST.range=el.dataset.v;render();break;
+      case'csv':exportCsv(filtered());break;
+      case'csv-all':exportCsv(Object.values(S.tickets));break;
+      case'copyexp':{const ta=$('#exp');try{await navigator.clipboard.writeText(ta.value);toast('Copiado.')}catch(x){ta.select();toast('Selecione e copie o texto.')}break}
+    }
+  });
+  document.addEventListener('change',e=>{
+    const el=e.target;if(!el.dataset)return;
+    if(el.id==='suc'){ST.suc=el.value;render();return}
+    if(el.dataset.cap&&el.files&&el.files[0]){
+      const f=el.files[0],id=el.dataset.id,k=el.dataset.cap,stamp=el.dataset.from==='cam',redo=el.dataset.redo==='1';el.value='';
+      if(!Cfg.get('nome')){toast('Informe seu nome em Ajustes antes de anexar.');openSettings();return}
+      handlePhoto(id,f,k,false,stamp);
+    }else if(el.dataset.batch&&el.files&&el.files.length){const f=[...el.files],id=el.dataset.batch;el.value='';handleBatch(id,f)}
+  });
+  document.addEventListener('submit',e=>{
+    e.preventDefault();
+    if(e.target.matches('[data-form]'))saveManual(e.target);
+    else if(e.target.id==='setf')saveSettings(e.target);
+  });
+  document.addEventListener('input',e=>{
+    const el=e.target;
+    if(el.id==='q'){ST.q=el.value;const l=document.getElementById('reclist');const list=filtered();if(l)l.innerHTML=histList(list);const n=document.getElementById('histnote');if(n)n.innerHTML='<b>'+list.length+'</b> '+(list.length===1?'operação':'operações')+' · <b>'+nf2(list.reduce((a,t)=>a+(calc(t).liq||0),0)/1000)+' t</b> de peso líquido'}
+    else if(el.dataset&&el.dataset.ctl)Cfg.set('nome',el.value.trim());
+  });
+  document.addEventListener('focusout',()=>{setTimeout(()=>{const ae=document.activeElement;if(ST.pendingPaint&&!(ae&&ae.tagName==='INPUT'))render()},60)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const lb=$('.lightbox');if(lb)lb.remove();else closeLayer()}});
+  document.addEventListener('error',e=>{if(e.target&&e.target.tagName==='IMG')e.target.classList.add('broken')},true);
+}
+
+/* ====================== Inicialização ====================== */
+async function boot(){
+  applyTheme();wire();localLoad();render();
+  const use=n=>(window.backend&&window.backend.use?window.backend.use(n).catch(()=>null):Promise.resolve(null));
+  const [db,user,sample,assets,downloads]=await Promise.all(['db','user','sample','assets','downloads'].map(use));
+  ST.assets=assets;ST.downloads=downloads;
+  if(user){try{ST.uid=await user.id();ST.perms=await user.permissions();ST.master=await user.isMaster();ST.admin=can('ajustes:editar');ST.userName=await user.name();if(!Cfg.get('nome')&&ST.userName)Cfg.set('nome',ST.userName)}catch(e){}}
+  if(sample){try{const lim=await sample.limits();if(lim&&lim.images)ST.sample=sample}catch(e){}}
+  if(db){
+    ST.db=db;ST.mode='cloud';
+    const timer=setTimeout(()=>{if(!ST.synced)toast('Sincronização demorando. Mostrando dados deste aparelho.')},10000);
+    db.collection('tickets').onSnapshot(snap=>{
+      const m={};snap.docs.forEach(d=>{m[d.id]=clean(d.data())});
+      S.tickets=Object.assign({},m);ST.synced=!(snap.metadata&&snap.metadata.fromCache);if(ST.synced)clearTimeout(timer);render();
+    },e=>{ST.mode='local';toast('Sem acesso à nuvem. Usando dados deste aparelho.');render()});
+    db.doc('config/main').onSnapshot(d=>{if(d.exists){mergeCfg(d.data());render()}},()=>{});
+  }
+  render();
+}
+if(IS_BROWSER)boot();
+else module.exports={canConclude,reqSteps,etapaDone,expectedDeposit,calc,alerts,phaseOf,statusOf,normPlate,samePlate,num,pkgNF,pkgMTR,cleanData,missing,needsReview,afterApply,obsText,fmtPlate,sameDriver,orderOf,S,curStep,summaryText,DEF};
+</script>
+</body>
+</html>

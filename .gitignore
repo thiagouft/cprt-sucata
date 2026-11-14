@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+*.log
+
+# Segredos: nunca versionar (o modelo .env.example fica no git)
+.env
+.env.*
+!.env.example
