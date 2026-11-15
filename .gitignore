@@ -3,6 +3,9 @@ dist
 coverage
 *.log
 
+# Configurações locais do editor
+.vscode/
+
 # Segredos: nunca versionar (o modelo .env.example fica no git)
 .env
 .env.*

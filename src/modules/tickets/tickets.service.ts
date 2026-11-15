@@ -7,7 +7,7 @@ import { eventsService } from '../events/events.service.js';
 export const ticketIdSchema = z.object({ id: z.string().regex(/^[a-z0-9]{4,40}$/i, 'Identificador inválido') });
 
 /** O documento da operação é livre (a tela evolui sem migração); só exigimos o essencial. */
-export const ticketBodySchema = z.looseObject({ tipo: z.enum(['suja', 'limpa']) });
+export const ticketBodySchema = z.looseObject({ tipo: z.enum(['suja', 'limpa', 'especial']) });
 
 const str = (v: unknown) => (typeof v === 'string' && v !== '' ? v : null);
 const big = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? BigInt(Math.trunc(v)) : null);

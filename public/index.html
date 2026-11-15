@@ -14,7 +14,7 @@
   --bg:#EDF0F3; --surface:#FFFFFF; --surface2:#F3F5F8; --ink:#0E1A2B; --muted:#586577; --line:#D3D9E1;
   --hdr:#0E1A2B; --hdr-ink:#F2F5F9; --accent:#F2A900; --accent-ink:#1A1300;
   --primary:#16355F; --primary-ink:#FFFFFF;
-  --ret:#B5520A; --ret-bg:#FCEFE3; --mob:#1C5DB8; --mob-bg:#E5EEFB;
+  --ret:#B5520A; --ret-bg:#FCEFE3; --mob:#1C5DB8; --mob-bg:#E5EEFB; --esp:#7A3FC4; --esp-bg:#F0E8FA;
   --ok:#1B8A4B; --ok-bg:#E3F4EA; --bad:#C62F2F; --bad-bg:#FBE8E8; --warn:#8A5A00; --warn-bg:#FFF1CC;
   --shadow:0 1px 2px rgba(14,26,43,.06),0 4px 14px rgba(14,26,43,.06);
   color-scheme:light;
@@ -23,7 +23,7 @@
   :root:not([data-theme="light"]){
     --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
     --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
-    --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A;
+    --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#B995EE; --esp-bg:#241A36;
     --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
     color-scheme:dark;
@@ -32,7 +32,7 @@
 :root[data-theme="dark"]{
   --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
   --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
-  --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A;
+  --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#B995EE; --esp-bg:#241A36;
   --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -77,8 +77,10 @@ h2.sec .n svg{width:14px;height:14px;stroke-width:3.2}
 .op .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
 .op.ret .ico{background:var(--ret-bg);color:var(--ret)} .op.ret .tt{color:var(--ret)}
 .op.mob .ico{background:var(--mob-bg);color:var(--mob)} .op.mob .tt{color:var(--mob)}
+.op.esp .ico{background:var(--esp-bg);color:var(--esp)} .op.esp .tt{color:var(--esp)} .op.esp:hover,.op.esp:focus-visible{border-color:var(--esp)}
 .op.ret:hover,.op.ret:focus-visible{border-color:var(--ret)} .op.mob:hover,.op.mob:focus-visible{border-color:var(--mob)}
 .opbar{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);border-left-width:6px}
+.opbar.esp{border-left-color:var(--esp)} .opbar.esp .t{color:var(--esp)}
 .opbar.ret{border-left-color:var(--ret)} .opbar.mob{border-left-color:var(--mob)}
 .opbar .t{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .opbar.ret .t{color:var(--ret)} .opbar.mob .t{color:var(--mob)}
@@ -173,6 +175,7 @@ input.plate{font-size:24px!important;text-align:center}
 .rec .kg{text-align:right;font-family:var(--font-d);font-weight:700;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
 .rec .kg small{display:block;font-family:var(--font-b);font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
 .pill{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.pill.esp{background:var(--esp-bg);color:var(--esp)}
 .pill.ret{background:var(--ret-bg);color:var(--ret)} .pill.mob{background:var(--mob-bg);color:var(--mob)}
 .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.wait{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
 .pill.imp{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
@@ -189,7 +192,7 @@ input.plate{font-size:24px!important;text-align:center}
 .chart .day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
 .chart .bars{display:flex;align-items:flex-end;gap:3px;height:100%;width:100%;justify-content:center}
 .chart .b{flex:1;max-width:26px;border-radius:5px 5px 0 0;min-height:0;position:relative}
-.chart .b.ret{background:var(--ret)} .chart .b.mob{background:var(--mob)}
+.chart .b.esp{background:var(--esp)} .chart .b.ret{background:var(--ret)} .chart .b.mob{background:var(--mob)}
 .chart .b span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 .xl{display:flex;gap:8px;padding:6px 4px 0}
 .xl div{flex:1;text-align:center;font-size:12px;color:var(--muted);font-weight:600}
@@ -296,6 +299,7 @@ const STEPS={
   crlv:{t:'CRLV do caminhão',h:'Documento aberto, com a placa e o exercício legíveis.',kind:'crlv',ph:'e1'},
   caminhaoCarregado:{t:'Caminhão carregado na balança',h:'Mesmo enquadramento da entrada, agora com a carga.',kind:'caminhao',ph:'e1'},
   pesagemBruta:{t:'Visor da balança (carregado)',h:'Enquadre o número grande do visor.',kind:'visor',ph:'e1'},
+  fotoMaterial:{t:'Foto do material (sucata)',h:'Foto do material/sucata carregado. Serve só para compor o relatório.',kind:'material',ph:'e1'},
   mtr1:{t:'Manifesto (MTR)',h:'Anexe o MTR emitido (foto, captura ou PDF).',kind:'mtr',ph:'e2'},
   nf1:{t:'Nota fiscal (DANFE)',h:'Anexe a NF-e autorizada (foto, captura ou PDF).',kind:'nf',ph:'e2'},
   pesagemRetorno:{t:'Balança do pátio do sucateiro (pós-limpeza)',h:'Print/foto do visor da balança do sucateiro com o caminhão carregado e limpo.',kind:'visor',ph:'e3'},
@@ -303,8 +307,8 @@ const STEPS={
   nf2:{t:'Nota fiscal complementar (DANFE)',h:'Anexe a NF-e complementar (foto, captura ou PDF).',kind:'nf',ph:'e3'},
   deposito:{t:'Depósito na conta',h:'Anexe o comprovante ou extrato e confirme o valor recebido.',kind:'deposito',ph:'e4'}
 };
-const PHASES={suja:['e1','e2','e3','e4'],limpa:['e1','e2','e4']};
-// Numeração pela posição da etapa na operação: a sucata limpa não tem a Etapa 03, então o Recebimento é a Etapa 03 dela
+const PHASES={suja:['e1','e2','e3','e4'],limpa:['e1','e2','e4'],especial:['e1','e2','e4']};
+// Numeração pela posição da etapa na operação: a sucata limpa e a especial não têm a Etapa 03, então o Recebimento é a Etapa 03 dela
 const stageNum=(t,ph)=>PHASES[t.tipo].indexOf(ph)+1;
 const stageTag=(t,ph)=>'Etapa 0'+stageNum(t,ph);
 const PH_NAME={
@@ -313,7 +317,7 @@ const PH_NAME={
   e3:'Etapa 03 · Pesagem pós-limpeza, MTR e NF finais',
   e4:t=>stageTag(t,'e4')+' · Recebimento do valor'
 };
-const KIND_NAME={caminhao:'caminhão',visor:'visor da balança',cnh:'CNH',crlv:'CRLV',mtr:'manifesto (MTR)',nf:'nota fiscal',deposito:'comprovante de depósito'};
+const KIND_NAME={material:'material',caminhao:'caminhão',visor:'visor da balança',cnh:'CNH',crlv:'CRLV',mtr:'manifesto (MTR)',nf:'nota fiscal',deposito:'comprovante de depósito'};
 const FIELDS={
   caminhao:[['placa','Placa','text']],
   visor:[['kg','Peso exibido (kg)','number']],
@@ -591,9 +595,10 @@ const IC={
  back:'<path d="m15 5-7 7 7 7"/>'
 };
 const ic=n=>'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>';
-const KIND_IC={caminhao:'truck',visor:'scale',cnh:'id',crlv:'doc',mtr:'doc',nf:'doc',deposito:'doc'};
+const KIND_IC={material:'camera',caminhao:'truck',visor:'scale',cnh:'id',crlv:'doc',mtr:'doc',nf:'doc',deposito:'doc'};
 const DOCK=['mtr','nf','deposito'];
-const TIPO={suja:{cls:'ret',label:'Sucata suja',ico:'out'},limpa:{cls:'mob',label:'Sucata limpa',ico:'check'}};
+const TIPO_CURTO={suja:'Suja',limpa:'Limpa',especial:'Especial'};
+const TIPO={suja:{cls:'ret',label:'Sucata suja',ico:'out'},limpa:{cls:'mob',label:'Sucata limpa',ico:'check'},especial:{cls:'esp',label:'Sucata especial',ico:'stack'}};
 const $=(s,r)=>(r||document).querySelector(s);
 const dkey=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
 const Cfg={mem:{},get(k){try{return localStorage.getItem('sucata-'+k)||this.mem[k]||''}catch(e){return this.mem[k]||''}},set(k,v){this.mem[k]=v;try{localStorage.setItem('sucata-'+k,v)}catch(e){}}};
@@ -709,10 +714,16 @@ async function handlePhoto(tid,file,pref,quiet,stamp){
   const up=uploadPhoto(blobs.stamped);
   ST.busy={tid,key:pref,msg:pdf?'Anexando o PDF…':'Lendo os dados da foto…'};render();
   let res=null,err=null;
-  if(!pdf)try{res=await readPhoto(blobs.raw,kindPref)}catch(e){err=e}
+  if(kindPref==='material'){}
+  else if(!pdf)try{res=await readPhoto(blobs.raw,kindPref)}catch(e){err=e}
   else if(ST.sample&&!(pref&&STEPS[pref].ph==='e1'))try{res=await readPhoto(await pdfToImage(file),kindPref)}catch(e){res=null}
   const photoId=await up;
   const t0=S.tickets[tid];if(!t0){ST.busy=null;render();return{ok:false}}
+  if(kindPref==='material'){
+    ST.busy=null;ST.photos[tid+':'+pref]=ST.photos[tid+':'+tmp];
+    edit(tid,t=>{t.fotos[pref]={id:photoId||null,em:Date.now()};t.leit[pref]={semDados:true,em:Date.now(),por:Cfg.get('nome')||null};delete t.pulou[pref]});
+    return{ok:true,key:pref,tipo:'material'}
+  }
   const ocrOff=!pdf&&(!ST.sample||!!(err&&(err.code==='no_ocr'||FATAL.includes(err.code))));
   const tipo=res&&res.tipo,readable=!!(res&&res.legivel!==false&&tipo&&tipo!=='outro');
   const key=pref||(readable?targetKey(t0,tipo,null):null);
@@ -865,7 +876,7 @@ function recItem(t){
   const s=statusOf(t),c=calc(t),al=alerts(t,S.tickets),bad=al.some(a=>a.lvl==='bad'),T=TIPO[t.tipo];
   const th=photoURL(t,'caminhaoVazio');
   return '<button class="rec'+(bad?' b':al.length?' w':'')+'" data-act="open" data-id="'+t.id+'"><span class="th">'+(th?'<img src="'+esc(th)+'" alt="">':ic('truck'))+'</span><span>'+
-   '<span class="l1"><span class="pill '+T.cls+'">'+(t.tipo==='suja'?'Suja':'Limpa')+'</span><span class="pr">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</span>'+(t.demo?'<span class="pill demo">exemplo</span>':'')+(t.hist?'<span class="pill imp">importado</span>':'')+(al.length?'<span class="pill '+(bad?'bad':'wait')+'">'+al.length+' alerta'+(al.length>1?'s':'')+'</span>':'')+'</span>'+
+   '<span class="l1"><span class="pill '+T.cls+'">'+TIPO_CURTO[t.tipo]+'</span><span class="pr">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</span>'+(t.demo?'<span class="pill demo">exemplo</span>':'')+(t.hist?'<span class="pill imp">importado</span>':'')+(al.length?'<span class="pill '+(bad?'bad':'wait')+'">'+al.length+' alerta'+(al.length>1?'s':'')+'</span>':'')+'</span>'+
    '<span class="l2"><b style="color:var(--ink)">'+esc(s.label)+'</b> · '+esc(nextText(t))+'</span>'+
    '<span class="l2">'+esc(motoristaOf(t)||'sem motorista')+(t.cliente?' · '+esc(t.cliente):'')+' · '+dtm(t.atualizadoEm)+(s.ph!=='concluida'&&daysSince(t)>0?' · parada há '+daysSince(t)+' d':'')+'</span></span>'+
    (s.ph==='e4'&&expectedDeposit(t)!=null?'<span class="kg" style="font-size:18px">'+brl(expectedDeposit(t))+'<small>a receber</small></span>':'<span class="kg">'+(c.liq!=null?fmtN(c.liq):'—')+'<small>kg líq.</small></span>')+'</button>';
@@ -879,8 +890,9 @@ function vHome(){
    '<h2 class="sec"><span class="n">2</span>Sucateiro</h2><div class="card pad"><div class="f"><label for="suc">Quem está comprando <span class="rq">*</span></label><select id="suc"><option value="">Selecione o sucateiro</option>'+(S.cfg.sucateiros||[]).map(x=>'<option value="'+esc(x.nome)+'"'+(ST.suc===x.nome?' selected':'')+'>'+esc(x.nome)+'</option>').join('')+'</select>'+(sucSel()?'<div class="hint">Preço: <b>'+brl(sucSel().precoKg)+' por kg</b> · CNPJ '+esc(sucSel().cnpj)+'</div>':'<div class="hint">O preço por kg vem do cadastro de cada sucateiro.</div>')+'</div></div>'+
    '<h2 class="sec"><span class="n">3</span>Tipo de sucata</h2><div class="ops">'+
    '<button class="op ret" data-act="create" data-tipo="suja"><span class="ico">'+ic('out')+'</span><span class="tt">Sucata suja</span><span class="dd">4 etapas: pátio, MTR e NF de '+q+', pesagem pós-limpeza com MTR e NF finais, e recebimento.</span></button>'+
-   '<button class="op mob" data-act="create" data-tipo="limpa"><span class="ico">'+ic('check')+'</span><span class="tt">Sucata limpa</span><span class="dd">Pátio, MTR e NF finais com o peso líquido, e recebimento.</span></button></div>'+
-   '<div class="note mt">Esta tela é a <b>Etapa 01</b>: fotos do caminhão, das pesagens, da CNH e do CRLV. Ao concluir a etapa, a operação segue para a aba Pendências. Data, hora e controlador são gravados na imagem.</div>';
+   '<button class="op mob" data-act="create" data-tipo="limpa"><span class="ico">'+ic('check')+'</span><span class="tt">Sucata limpa</span><span class="dd">Pátio, MTR e NF finais com o peso líquido, e recebimento.</span></button>'+
+   '<button class="op esp" data-act="create" data-tipo="especial"><span class="ico">'+ic('stack')+'</span><span class="tt">Sucata especial</span><span class="dd">Pátio, MTR e NF finais com o peso líquido, e recebimento.</span></button></div>'+
+   '<div class="note mt">Esta tela é a <b>Etapa 01</b>: fotos do caminhão, das pesagens, da CNH, do CRLV e do material. Ao concluir a etapa, a operação segue para a aba Pendências. Data, hora e controlador são gravados na imagem.</div>';
   h+='<h2 class="sec"><span class="n">4</span>Etapa 01 em andamento ('+open.length+')</h2>';
   if(open.length)h+=open.map(recItem).join('');
   else h+='<div class="card empty"><div class="ei">'+ic('truck')+'</div><b>Nenhuma operação na Etapa 01</b><div style="margin-top:4px">As demais etapas ficam na aba Pendências.</div>'+(all.length?'':'<div class="mt"><button class="btn" data-act="seed">Ver com exemplos</button></div>')+'</div>';
@@ -892,7 +904,7 @@ function vHome(){
 const calcBox=(k,v,u,cls)=>'<div class="'+(cls||'')+'"><div class="k">'+k+'</div><div class="v">'+v+'<span class="u">'+u+'</span></div></div>';
 const nz=n=>n==null?'—':fmtN(n);
 const STAGE_HELP={
-  e1:'Pátio: fotografe o caminhão vazio, a balança (tara), a CNH, o CRLV, o caminhão carregado e a balança. Só é possível substituir a foto: não há correção manual nesta etapa.',
+  e1:'Pátio: fotografe o caminhão vazio, a balança (tara), a CNH, o CRLV, o caminhão carregado, a balança e o material (esta foto é só para o relatório). Só é possível substituir a foto: não há correção manual nesta etapa.',
   e2:'Anexe o MTR e a NF-e emitidos (foto, captura ou PDF). Se houver inconsistência, o app gera um alerta e a etapa segue.',
   e3:'Depois da limpeza, o sucateiro pesa no pátio dele: anexe o print da balança, o MTR final e a NF final (foto, captura ou PDF).',
   e4:'Anexe o comprovante do depósito (foto ou PDF) ou digite o valor recebido. A operação só é concluída com o depósito reconhecido.'
@@ -958,6 +970,7 @@ function readLine(t,k){
   const d=L(t,k);if(!d)return'';
   switch(STEPS[k].kind){
     case'caminhao':return'placa '+fmtPlate(d.placa)+(d.frota?' · '+d.frota:'');
+    case'material':return'foto anexada';
     case'visor':return fmtKg(d.kg);
     case'cnh':return (d.nome||'—')+(d.validade&&parseDate(d.validade)?' · válida até '+dts(parseDate(d.validade)):'');
     case'crlv':return 'placa '+fmtPlate(d.placa)+(d.exercicio?' · exercício '+d.exercicio:'');
@@ -984,8 +997,8 @@ function tileHtml(t,k){
   const shot=busy?'<div class="spin" role="status" aria-label="Processando"></div>':pdfU?'<a href="'+esc(pdfU)+'" target="_blank" rel="noopener" style="display:grid;place-items:center;gap:4px;color:var(--primary);font-weight:700;font-size:13px;text-align:center">'+ic('doc').replace('class="ic"','class="ic" style="width:34px;height:34px"')+'Abrir PDF</a>':url?'<img src="'+esc(url)+'" alt="Foto: '+esc(stepTitle(t,k))+'" data-act="lb" data-src="'+esc(url)+'">':ic(KIND_IC[S_.kind]).replace('class="ic"','class="ic" style="width:34px;height:34px"');
   let body='<h3>'+esc(stepTitle(t,k))+(d?'<span class="chk">'+ic('check')+'</span>':'')+'</h3>';
   if(d){
-    body+=S_.kind==='visor'?'<div class="rd">'+(d.kg!=null?fmtN(d.kg):'—')+' <small>kg</small></div>':'<p>'+esc(readLine(t,k))+'</p>';
-    body+=d.hist?'<div class="aist warn">'+ic('doc')+'Importado da planilha.</div>':d.inc?'<div class="aist warn">'+ic('warn')+'Anexado, dados não lidos.</div>':d.manual?'<div class="aist warn">'+ic('edit')+'Informado à mão.</div>':'<div class="aist ok">'+ic('check')+'Dados lidos. Confira.</div>';
+    if(S_.kind==='material')body+='<p>Foto anexada.</p><div class="aist ok">'+ic('check')+'Só para o relatório, sem leitura de dados.</div>';else{body+=S_.kind==='visor'?'<div class="rd">'+(d.kg!=null?fmtN(d.kg):'—')+' <small>kg</small></div>':'<p>'+esc(readLine(t,k))+'</p>';
+    body+=d.hist?'<div class="aist warn">'+ic('doc')+'Importado da planilha.</div>':d.inc?'<div class="aist warn">'+ic('warn')+'Anexado, dados não lidos.</div>':d.manual?'<div class="aist warn">'+ic('edit')+'Informado à mão.</div>':'<div class="aist ok">'+ic('check')+'Dados lidos. Confira.</div>';}
   }else if(!editable)body+='<p>Não registrado.</p>';
   else body+='<p>'+esc(S_.h)+'</p>';
   if(busy)body+='<div class="aist busy"><span class="spin sm"></span>'+esc(ST.busy.msg)+'</div>';
@@ -1020,8 +1033,12 @@ const PEND=[
  {ph:'e1',t:'Etapa 01 · Pátio',d:'Fotos do caminhão, das pesagens, da CNH e do CRLV.'},
  {ph:'e2',t:'Etapa 02 · MTR e NF',d:'Anexar o MTR e a NF (iniciais na suja, finais na limpa).'},
  {ph:'e3',t:'Etapa 03 · MTR e NF finais (suja)',d:'Aguardando a limpeza. Anexar o print da balança do sucateiro, o MTR final e a NF final.'},
- {ph:'e4',t:'Etapa 04 · Recebimento',d:'Anexar o comprovante ou digitar o valor recebido.'}
+ {ph:'e4',t:'Etapa 04 · Recebimento',d:'Anexar o comprovante ou digitar o valor recebido.',suja:true},
+ {ph:'e4',t:'Etapa 03 · Recebimento',d:'Anexar o comprovante ou digitar o valor recebido.',suja:false}
 ];
+// Sucata suja tem 4 etapas; limpa e especial têm 3 (o Recebimento é a Etapa 03 delas)
+const pendGroups=pf=>PEND.filter(g=>g.suja===undefined||pf==='all'||(g.suja===(pf==='suja')));
+const inGroup=(t,g)=>phaseOf(t)===g.ph&&(g.suja===undefined||g.suja===(t.tipo==='suja'));
 const daysSince=t=>Math.max(0,Math.floor((Date.now()-t.atualizadoEm)/864e5));
 function vPend(){
   const open=Object.values(S.tickets).filter(t=>phaseOf(t)!=='concluida');
@@ -1029,12 +1046,13 @@ function vPend(){
   if(!open.length)return h+'<div class="card empty mt"><div class="ei">'+ic('check')+'</div><b>Nenhuma pendência</b><div style="margin-top:4px">Todas as operações estão concluídas.</div></div>';
   const list=open.filter(t=>ST.pf==='all'||t.tipo===ST.pf);
   const ch=(v,l)=>'<button class="chip" data-act="pf" data-v="'+v+'" aria-pressed="'+(ST.pf===v)+'">'+l+'</button>';
-  h+='<div class="chips mt">'+ch('all','Todas')+ch('suja','Sucata suja')+ch('limpa','Sucata limpa')+'</div>';
-  h+='<div class="kpis mt">'+PEND.map(g=>'<div class="card kpi"><div class="k">'+g.t.split(' · ')[0]+'</div><div class="v">'+list.filter(t=>phaseOf(t)===g.ph).length+'</div></div>').join('')+'</div>';
+  h+='<div class="chips mt">'+ch('all','Todas')+ch('suja','Sucata suja')+ch('limpa','Sucata limpa')+ch('especial','Sucata especial')+'</div>';
+  const pgs=pendGroups(ST.pf),kp=ST.pf==='all'?pgs.filter(g=>g.suja!==false):pgs;
+  h+='<div class="kpis mt">'+kp.map(g=>'<div class="card kpi"><div class="k">'+(ST.pf==='all'&&g.ph==='e4'?'Recebimento':g.t.split(' · ')[0])+'</div><div class="v">'+list.filter(t=>ST.pf==='all'?phaseOf(t)===g.ph:inGroup(t,g)).length+'</div></div>').join('')+'</div>';
   const rc=list.filter(t=>phaseOf(t)==='e4').reduce((a,t)=>a+(expectedDeposit(t)||0),0);
   if(rc)h+='<div class="note mt">A receber no total: <b>'+brl(rc)+'</b></div>';
-  PEND.forEach(g=>{
-    const l=list.filter(t=>phaseOf(t)===g.ph).sort((a,b)=>a.atualizadoEm-b.atualizadoEm);if(!l.length)return;
+  pgs.forEach(g=>{
+    const l=list.filter(t=>inGroup(t,g)).sort((a,b)=>a.atualizadoEm-b.atualizadoEm);if(!l.length)return;
     h+='<h2 class="sec"><span class="n">'+l.length+'</span>'+g.t+'</h2><div class="muted" style="font-size:13.5px;margin:-4px 0 10px">'+g.d+'</div>'+l.map(recItem).join('');
   });
   if(!list.length)h+='<div class="card empty mt"><b>Nenhuma pendência neste filtro</b></div>';
@@ -1050,7 +1068,7 @@ function vAlert(){
   if(!l.length)return'<div class="card empty"><div class="ei">'+ic('check')+'</div><b>Nenhum alerta</b><div style="margin-top:4px">As inconsistências encontradas nas etapas aparecem aqui.</div></div>';
   const n=l.reduce((a,x)=>a+x.al.length,0);
   return'<div class="note" style="margin-bottom:12px"><b>'+n+'</b> alerta'+(n>1?'s':'')+' em <b>'+l.length+'</b> operaç'+(l.length>1?'ões':'ão')+'. As etapas seguem normalmente; toque em Corrigir para ir direto ao item e trocar a foto ou o arquivo.</div>'+
-   l.map(({t,al})=>'<div class="card pad" style="margin-bottom:12px"><div class="row" style="align-items:center;margin-bottom:8px"><div style="flex:1;min-width:0"><span class="pill '+TIPO[t.tipo].cls+'">'+(t.tipo==='suja'?'Suja':'Limpa')+'</span> <b class="plate" style="font-size:18px">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</b><div class="muted" style="font-size:13px">'+esc(t.num)+' · '+esc(statusOf(t).label)+(t.cliente?' · '+esc(t.cliente):'')+'</div></div></div><ul style="margin:0;padding:0;list-style:none;display:grid;gap:10px">'+
+   l.map(({t,al})=>'<div class="card pad" style="margin-bottom:12px"><div class="row" style="align-items:center;margin-bottom:8px"><div style="flex:1;min-width:0"><span class="pill '+TIPO[t.tipo].cls+'">'+TIPO_CURTO[t.tipo]+'</span> <b class="plate" style="font-size:18px">'+esc(placaOf(t)?fmtPlate(placaOf(t)):'SEM PLACA')+'</b><div class="muted" style="font-size:13px">'+esc(t.num)+' · '+esc(statusOf(t).label)+(t.cliente?' · '+esc(t.cliente):'')+'</div></div></div><ul style="margin:0;padding:0;list-style:none;display:grid;gap:10px">'+
     al.map(a=>'<li style="display:flex;gap:8px;align-items:flex-start"><span class="pill '+(a.lvl==='bad'?'bad':'wait')+'" style="flex:none">'+(a.lvl==='bad'?'Revise':'Atenção')+'</span><span style="font-size:14.5px;flex:1">'+esc(a.txt)+'</span>'+(a.key&&STEPS[a.key]?'<button class="btn sm" style="flex:none" data-act="fix" data-id="'+t.id+'" data-key="'+a.key+'">Corrigir</button>':'<button class="btn sm" style="flex:none" data-act="open" data-id="'+(a.open||t.id)+'">Abrir</button>')+'</li>').join('')+'</ul></div>').join('');
 }
 
@@ -1068,7 +1086,7 @@ function vHist(){
   const list=filtered(),kgT=list.reduce((a,t)=>a+(calc(t).liq||0),0);
   const ch=(act,key,val,cur,l)=>'<button class="chip" data-act="'+act+'" data-v="'+val+'" aria-pressed="'+(cur===val)+'">'+l+'</button>';
   return '<div class="toolbar"><div class="search">'+ic('search')+'<input id="q" type="search" placeholder="Buscar placa, motorista, NF, MTR ou nº" value="'+esc(ST.q)+'" aria-label="Buscar operações"></div>'+
-   '<div class="chips">'+[['all','Todas'],['suja','Suja'],['limpa','Limpa']].map(x=>ch('hf','hf',x[0],ST.hf,x[1])).join('')+'</div>'+
+   '<div class="chips">'+[['all','Todas'],['suja','Suja'],['limpa','Limpa'],['especial','Especial']].map(x=>ch('hf','hf',x[0],ST.hf,x[1])).join('')+'</div>'+
    '<div class="chips">'+[['all','Qualquer situação'],['abertas','Abertas'],['concluidas','Concluídas']].map(x=>ch('hs','hs',x[0],ST.hs,x[1])).join('')+'</div>'+
    '<div class="chips">'+[['today','Hoje'],['7','7 dias'],['30','30 dias'],['all','Todo o período']].map(x=>ch('range','range',x[0],ST.range,x[1])).join('')+'</div></div>'+
    '<div class="note" style="margin-bottom:12px" id="histnote"><b>'+list.length+'</b> '+(list.length===1?'operação':'operações')+' · <b>'+nf2(kgT/1000)+' t</b> de peso líquido</div>'+
@@ -1144,9 +1162,9 @@ function vPanel(){
   const sum=a=>a.reduce((s,x)=>s+x.kg,0);
   const kgM=sum(docs.filter(x=>{const d=new Date(x.at);return d.getMonth()===mo&&d.getFullYear()===yr})),vM=docs.filter(x=>{const d=new Date(x.at);return d.getMonth()===mo&&d.getFullYear()===yr}).reduce((s,x)=>s+x.v,0);
   const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d)}
-  const data=days.map(d=>{const k=dkey(d),r=docs.filter(x=>dkey(x.at)===k);return{d,ret:sum(r.filter(x=>x.tipo==='suja')),mob:sum(r.filter(x=>x.tipo==='limpa'))}});
-  const mx=Math.max(1,...data.map(x=>Math.max(x.ret,x.mob)));
-  const bars=data.map(x=>'<div class="day"><div class="bars">'+['ret','mob'].map(k=>'<div class="b '+k+'" style="height:'+(x[k]?Math.max(3,x[k]/mx*100):0)+'%">'+(x[k]?'<span>'+(x[k]/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'</span>':'')+'</div>').join('')+'</div></div>').join('');
+  const data=days.map(d=>{const k=dkey(d),r=docs.filter(x=>dkey(x.at)===k);return{d,ret:sum(r.filter(x=>x.tipo==='suja')),mob:sum(r.filter(x=>x.tipo==='limpa')),esp:sum(r.filter(x=>x.tipo==='especial'))}});
+  const mx=Math.max(1,...data.map(x=>Math.max(x.ret,x.mob,x.esp)));
+  const bars=data.map(x=>'<div class="day"><div class="bars">'+['ret','mob','esp'].map(k=>'<div class="b '+k+'" style="height:'+(x[k]?Math.max(3,x[k]/mx*100):0)+'%">'+(x[k]?'<span>'+(x[k]/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'</span>':'')+'</div>').join('')+'</div></div>').join('');
   const xl=data.map(x=>'<div>'+x.d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')+'<br>'+String(x.d.getDate()).padStart(2,'0')+'/'+String(x.d.getMonth()+1).padStart(2,'0')+'</div>').join('');
   wait.sort((a,b)=>a.atualizadoEm-b.atualizadoEm);
   return '<div class="kpis"><div class="card kpi"><div class="k">Em andamento</div><div class="v">'+(open.length-wait.length)+'</div></div>'+
@@ -1154,7 +1172,7 @@ function vPanel(){
    '<div class="card kpi"><div class="k">Concluídas hoje</div><div class="v" style="color:var(--ok)">'+doneToday+'</div></div>'+
    '<div class="card kpi"><div class="k">Faturado no mês</div><div class="v">'+(kgM/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' <small>t</small></div></div></div>'+
    '<div class="note mt">A receber: <b>'+brl(all.filter(t=>phaseOf(t)==='e4').reduce((a,t)=>a+(expectedDeposit(t)||0),0))+'</b> · Recebido no mês: <b>'+brl(all.reduce((a,t)=>{const d=L(t,'deposito');return a+(d&&d.em&&new Date(d.em).getMonth()===mo&&new Date(d.em).getFullYear()===yr?d.valor||0:0)},0))+'</b> · Faturado no mês: <b>'+brl(vM)+'</b> · '+all.filter(t=>phaseOf(t)==='concluida').length+' operações concluídas no total.</div>'+
-   '<h2 class="sec">Evolução em reais</h2>'+evolucao(all)+'<h2 class="sec">Peso faturado nos últimos 7 dias (t)</h2><div class="card pad"><div class="chart" role="img" aria-label="Gráfico de barras de peso faturado por dia, sucata suja e limpa">'+bars+'</div><div class="xl">'+xl+'</div><div class="legend"><span><i style="background:var(--ret)"></i>Sucata suja</span><span><i style="background:var(--mob)"></i>Sucata limpa</span></div></div>'+
+   '<h2 class="sec">Evolução em reais</h2>'+evolucao(all)+'<h2 class="sec">Peso faturado nos últimos 7 dias (t)</h2><div class="card pad"><div class="chart" role="img" aria-label="Gráfico de barras de peso faturado por dia, sucata suja, limpa e especial">'+bars+'</div><div class="xl">'+xl+'</div><div class="legend"><span><i style="background:var(--ret)"></i>Sucata suja</span><span><i style="background:var(--mob)"></i>Sucata limpa</span><span><i style="background:var(--esp)"></i>Sucata especial</span></div></div>'+
    '<h2 class="sec">Caminhões aguardando limpeza</h2><div class="card pad" style="overflow-x:auto">'+(wait.length?'<table class="tbl"><thead><tr><th>Placa</th><th>Motorista</th><th class="r">Faturado (kg)</th><th class="r">Dias</th></tr></thead><tbody>'+wait.map(t=>'<tr><td><b>'+esc(fmtPlate(placaOf(t)))+'</b></td><td>'+esc(motoristaOf(t)||'—')+'</td><td class="r">'+fmtN(calc(t).qtd1)+'</td><td class="r">'+Math.max(0,Math.floor((Date.now()-t.atualizadoEm)/864e5))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty" style="padding:18px">Nenhum caminhão aguardando limpeza.</div>')+'</div>'+
    '<h2 class="sec">Por sucateiro</h2><div class="card pad" style="overflow-x:auto">'+porSuc(all)+'</div><div class="row mt"><button class="btn" data-act="csv-all">'+ic('download')+'Exportar tudo (CSV)</button></div>';
 }
