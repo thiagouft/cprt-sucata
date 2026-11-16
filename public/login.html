@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Entrar · Controle de Sucata</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0A121E;--hdr:#070D16;--card:#121D2D;--field:#141F31;--ink:#E8EDF3;--muted:#93A0B2;--line:#26374D;--accent:#F2A900;--accent-ink:#1A1300;--primary:#3B7BD0;--primary-hover:#4A88DB;--bad:#F27B7B;--bad-bg:#2D1717;color-scheme:dark}
@@ -35,16 +36,17 @@ button:disabled{opacity:.6;cursor:default}
 .err{display:none;border:1px solid var(--bad);background:var(--bad-bg);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:16px}
 
 @media (max-width:480px){main{padding-top:24px}header h1{font-size:21px}}
+.mark img{width:100%;height:100%;display:block;border-radius:inherit}
 </style>
 </head>
 <body>
 <header>
-  <div class="mark" aria-hidden="true">SC</div>
+  <div class="mark" aria-hidden="true"><img src="/logo.svg" alt=""></div>
   <h1>Controle de Sucata</h1>
 </header>
 <main>
   <section class="card" aria-labelledby="titulo">
-    <div class="mark" aria-hidden="true">SC</div>
+    <div class="mark" aria-hidden="true"><img src="/logo.svg" alt=""></div>
     <h2 id="titulo">Acesso ao sistema</h2>
     <p class="sub">Pesagem, MTR e NF de Sucata</p>
     <form id="f">

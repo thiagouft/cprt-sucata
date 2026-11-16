@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trocar senha · Controle de Sucata</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#EDF0F3;--surface:#fff;--ink:#0E1A2B;--muted:#586577;--line:#D3D9E1;--hdr:#0E1A2B;--accent:#F2A900;--primary:#16355F;--bad:#C62F2F;--bad-bg:#FBE8E8;--note-bg:#FFF4D6;color-scheme:light}
@@ -24,10 +25,11 @@ button:disabled{opacity:.6}
 .note{background:var(--note-bg);border-radius:10px;padding:10px 12px;font-size:14px;display:none}
 .err{display:none;border:1px solid var(--bad);background:var(--bad-bg);border-radius:10px;padding:10px 12px;font-size:14px}
 .hint{font-size:13px;color:var(--muted);margin-top:4px}
+.mark img{width:100%;height:100%;display:block;border-radius:inherit}
 </style>
 </head>
 <body>
-<header><div class="mark">SC</div><h1>Controle de Sucata</h1><a href="/logout">Sair</a></header>
+<header><div class="mark"><img src="/logo.svg" alt="Controle de Sucata"></div><h1>Controle de Sucata</h1><a href="/logout">Sair</a></header>
 <main>
   <form id="f" autocomplete="off">
     <h2>Alterar senha</h2>

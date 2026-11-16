@@ -79,6 +79,8 @@ export function createApp(): Express {
   /* ---------- Público ---------- */
   app.get('/login', (_req, res) => res.sendFile(path.join(PUBLIC, 'login.html')));
   app.get('/favicon.ico', (_req, res) => res.status(204).end());
+  app.get('/logo.svg', (_req, res) => res.sendFile(path.join(PUBLIC, 'logo.svg')));
+  app.get('/favicon.svg', (_req, res) => res.sendFile(path.join(PUBLIC, 'favicon.svg')));
   app.get('/login.js', (_req, res) => res.sendFile(path.join(PUBLIC, 'login.js')));
   app.use('/api/auth', express.json(), authRouter);
   app.get('/logout', (_req, res) => {
