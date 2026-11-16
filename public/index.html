@@ -14,7 +14,7 @@
   --bg:#EDF0F3; --surface:#FFFFFF; --surface2:#F3F5F8; --ink:#0E1A2B; --muted:#586577; --line:#D3D9E1;
   --hdr:#0E1A2B; --hdr-ink:#F2F5F9; --accent:#F2A900; --accent-ink:#1A1300;
   --primary:#16355F; --primary-ink:#FFFFFF;
-  --ret:#B5520A; --ret-bg:#FCEFE3; --mob:#1C5DB8; --mob-bg:#E5EEFB; --esp:#7A3FC4; --esp-bg:#F0E8FA;
+  --ret:#B5520A; --ret-bg:#FCEFE3; --mob:#1C5DB8; --mob-bg:#E5EEFB; --esp:#1E8A4C; --esp-bg:#E3F5EA;
   --ok:#1B8A4B; --ok-bg:#E3F4EA; --bad:#C62F2F; --bad-bg:#FBE8E8; --warn:#8A5A00; --warn-bg:#FFF1CC;
   --shadow:0 1px 2px rgba(14,26,43,.06),0 4px 14px rgba(14,26,43,.06);
   color-scheme:light;
@@ -23,7 +23,7 @@
   :root:not([data-theme="light"]){
     --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
     --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
-    --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#B995EE; --esp-bg:#241A36;
+    --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#5FD08A; --esp-bg:#12281C;
     --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
     color-scheme:dark;
@@ -32,7 +32,7 @@
 :root[data-theme="dark"]{
   --bg:#0A121E; --surface:#121D2D; --surface2:#182638; --ink:#E8EDF3; --muted:#93A0B2; --line:#26374D;
   --hdr:#070D16; --primary:#3B7BD0; --primary-ink:#FFFFFF;
-  --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#B995EE; --esp-bg:#241A36;
+  --ret:#F0914A; --ret-bg:#2B1D12; --mob:#7AB0F4; --mob-bg:#14243A; --esp:#5FD08A; --esp-bg:#12281C;
   --ok:#4CC27E; --ok-bg:#12281D; --bad:#F27B7B; --bad-bg:#2D1717; --warn:#F0BB52; --warn-bg:#33270C;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -781,6 +781,90 @@ function saveManual(form){
     if(['pesagemTara','pesagemBruta'].includes(key))t.qtd1=null;afterApply(t)});
 }
 
+/* ====================== Comprovante em PDF ====================== */
+let _jspdf=null;
+function loadJsPdf(){
+  if(_jspdf)return _jspdf;
+  _jspdf=new Promise((res,rej)=>{
+    if(window.jspdf)return res(window.jspdf);
+    const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    sc.onload=()=>window.jspdf?res(window.jspdf):rej(new Error('jspdf'));sc.onerror=()=>rej(new Error('jspdf'));document.head.appendChild(sc);
+    setTimeout(()=>rej(new Error('timeout')),20000);
+  }).catch(e=>{_jspdf=null;throw e});
+  return _jspdf;
+}
+// Devolve {data,w,h} da foto (ou da 1ª página do PDF) de uma etapa, ou null
+async function proofImage(t,k){
+  try{
+    let src;
+    if(isPdf(t,k)){
+      const f=t.fotos[k],u=f&&f.id?'/_blob/'+f.id:fileURL(t,k);if(!u)return null;
+      src=await pdfToImage(await (await fetch(u)).blob());
+    }else{
+      src=photoURL(t,k);if(!src)return null;
+    }
+    const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=typeof src==='string'?src:URL.createObjectURL(src)});
+    const sc=Math.min(1,1400/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.round(im.naturalWidth*sc),h=Math.round(im.naturalHeight*sc);
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,w,h);cx.drawImage(im,0,0,w,h);
+    return{data:cv.toDataURL('image/jpeg',.82),w,h};
+  }catch(e){return null}
+}
+async function downloadProof(id){
+  const t=S.tickets[id];if(!t)return;
+  toast('Gerando o comprovante…');
+  let J;try{J=(await loadJsPdf()).jsPDF}catch(e){toast('Não foi possível carregar o gerador de PDF. Verifique a conexão.');return}
+  const c=calc(t),doc=new J({unit:'mm',format:'a4'}),PW=210,PH=297,M=14,CW=PW-2*M;
+  let y=M;
+  const need=h=>{if(y+h>PH-16){doc.addPage();y=M}};
+  const txt=(s,o)=>{o=o||{};doc.setFont('helvetica',o.b?'bold':'normal');doc.setFontSize(o.sz||10);doc.setTextColor(...(o.c||[30,30,30]));
+    const ls=doc.splitTextToSize(String(s),o.w||CW),lh=(o.sz||10)*.45;for(const l of ls){need(lh+1);doc.text(l,M,y+lh*.8);y+=lh+.6}};
+  const bar=title=>{need(14);y+=3;doc.setFillColor(14,26,43);doc.rect(M,y,CW,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(255,255,255);doc.text(title,M+2.5,y+4.9);y+=10};
+  const kv=(k,v)=>{const ls=doc.splitTextToSize(String(v==null||v===''?'—':v),CW-52);need(ls.length*4.6+1);
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(90,90,90);doc.text(k,M,y+3.6);
+    doc.setFont('helvetica','normal');doc.setTextColor(20,20,20);ls.forEach((l,i)=>doc.text(l,M+52,y+3.6+i*4.6));y+=ls.length*4.6+.8};
+  // Cabeçalho
+  doc.setFillColor(242,169,0);doc.rect(0,0,PW,4,'F');
+  y=10;txt('COMPROVANTE DE OPERAÇÃO',{b:1,sz:18});
+  txt('Controle de Sucata · '+TIPO[t.tipo].label,{sz:11,c:[90,90,90]});
+  y+=2;
+  kv('Operação nº',t.num);kv('Situação',statusOf(t).label);kv('Abertura',dtm(t.criadoEm));kv('Conclusão',phaseOf(t)==='concluida'?dtm(t.atualizadoEm):'—');
+  kv('Controlador',t.controlador);kv('Sucateiro',t.cliente);kv('Placa',fmtPlate(placaOf(t)));kv('Motorista',motoristaOf(t));
+  bar('RESUMO');
+  kv('Tara',fmtKg(c.tara));kv('Carregado',fmtKg(c.bruta));kv('Líquido',fmtKg(c.liq));
+  if(t.tipo==='suja'){kv('Pós-limpeza',fmtKg(c.ret));kv('Líquido limpo',fmtKg(c.liqLimpo));kv('Já faturado (NF inicial)',fmtKg(c.qtd1));kv('Complementar',fmtKg(c.qtd2))}
+  kv('Preço por kg',brl(c.preco));
+  for(const k of ['nf1','nf2']){const d=L(t,k);if(d)kv(stepTitle(t,k),'nº '+(d.numero||'—')+' · '+fmtKg(d.qtdKg)+(d.valorTotal!=null?' · '+brl(d.valorTotal):''))}
+  for(const k of ['mtr1','mtr2']){const d=L(t,k);if(d)kv(stepTitle(t,k),'nº '+(d.numero||'—')+' · '+(d.qtdTon!=null?fmtTon(d.qtdTon*1000)+' t':'—'))}
+  const dp=L(t,'deposito');
+  kv('Total das notas',brl(expectedDeposit(t)));kv('Depósito recebido',dp?brl(dp.valor)+(dp.data&&parseDate(dp.data)?' em '+dts(parseDate(dp.data)):''):'—');
+  const al=alerts(t,S.tickets);
+  if(al.length){bar('ALERTAS ('+al.length+')');for(const a of al)txt('• '+a.txt,{sz:9.5,c:a.lvl==='bad'?[170,30,30]:[140,90,0]})}
+  // Etapas, com as fotos identificadas
+  for(const ph of PHASES[t.tipo]){
+    const e=t.etapas&&t.etapas[ph];
+    bar(phaseName(t,ph).toUpperCase());
+    if(e)txt('Concluída por '+(e.por||'—')+' em '+dtm(e.em),{sz:9,c:[90,90,90]});
+    for(const k of orderOf(t).filter(k=>STEPS[k].ph===ph)){
+      const d=L(t,k),img=d?await proofImage(t,k):null;
+      let iw=0,ih=0;if(img){const r=Math.min(110/img.w,85/img.h);iw=img.w*r;ih=img.h*r}
+      need(14+(img?ih+2:0));
+      txt(stepTitle(t,k),{b:1,sz:10.5});
+      if(!d){txt('Não registrado.',{sz:9.5,c:[130,130,130]});y+=2;continue}
+      if(STEPS[k].kind!=='material')txt(readLine(t,k)+(d.manual?' (informado à mão)':'')+(d.inc?' (dados não lidos)':''),{sz:9.5});
+      txt('Registrado '+dtm(d.em)+(d.por?' por '+d.por:''),{sz:8.5,c:[110,110,110]});
+      if(img){y+=1;doc.addImage(img.data,'JPEG',M,y,iw,ih);doc.setDrawColor(200,200,200);doc.rect(M,y,iw,ih);y+=ih+2}
+      else if(t.fotos&&t.fotos[k]&&t.fotos[k].id)txt('(arquivo anexado não pôde ser incluído)',{sz:8.5,c:[130,130,130]});
+      y+=2;
+    }
+  }
+  bar('REGISTRO');
+  for(const r of timelineRows(t))txt(dtm(r[0])+'  '+r[1],{sz:8.5});
+  const n=doc.getNumberOfPages(),gen='Gerado em '+dtm(Date.now());
+  for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(130,130,130);doc.text('Operação '+t.num+' · '+gen,M,PH-8);doc.text('Página '+i+' de '+n,PW-M,PH-8,{align:'right'})}
+  doc.save('comprovante-'+t.num+(placaOf(t)?'-'+placaOf(t):'')+'.pdf');
+  toast('Comprovante gerado.');
+}
+
 /* ====================== Camadas, toast, cópia, exportação ====================== */
 const layer=()=>document.getElementById('layer');
 function closeLayer(){layer().innerHTML=''}
@@ -912,7 +996,7 @@ const STAGE_HELP={
 function vTicket(t){
   const s=statusOf(t),c=calc(t),al=alerts(t,S.tickets),T=TIPO[t.tipo],isDone=s.ph==='concluida',cur=s.ph;
   let h='<div class="opbar '+T.cls+'"><span class="ico" style="color:var(--'+T.cls+')">'+ic(T.ico)+'</span><div style="flex:1;min-width:0"><div class="t">'+T.label+' · '+esc(placaOf(t)?fmtPlate(placaOf(t)):'sem placa')+'</div><div class="s">'+t.num+' · '+esc(s.label)+(t.cliente?' · '+esc(t.cliente):'')+(t.demo?' · exemplo':'')+(t.hist?' · importado da planilha':'')+'</div></div><button class="btn sm" data-act="back">'+ic('back')+'Voltar</button></div>';
-  if(isDone)h+='<div class="card done"><div class="big">'+ic('check')+'</div><h2>Depósito reconhecido</h2><div class="muted">Operação concluída · '+T.label+' · '+dtm(t.atualizadoEm)+'</div><div class="proto">'+esc(t.num)+'</div><div class="muted" style="font-size:14px">Guarde este número junto com as NFs, os MTRs e o comprovante.</div></div>';
+  if(isDone)h+='<div class="card done"><div class="big">'+ic('check')+'</div><h2>Depósito reconhecido</h2><div class="muted">Operação concluída · '+T.label+' · '+dtm(t.atualizadoEm)+'</div><div class="proto">'+esc(t.num)+'</div><div class="row mt" style="justify-content:center"><button class="btn pri" data-act="proof" data-id="'+t.id+'">'+ic('download')+'Baixar comprovante (PDF)</button></div><div class="muted" style="font-size:14px">Guarde este número junto com as NFs, os MTRs e o comprovante.</div></div>';
   if(t.hist)h+='<div class="note mt"><b>Operação importada</b> da planilha CONTROLE VENDA DE SUCATA, sem fotos. Registro apenas histórico.</div>';
   if(t.obsHist)h+='<div class="note mt"><b>Planilha:</b> '+esc(t.obsHist)+'</div>';
   if(ST.fixPh&&ST.tid===t.id&&!t.hist){
@@ -1242,6 +1326,7 @@ function wire(){
       case'manual-cancel':ST.manual=null;render();break;
       case'swap':edit(id,t=>{const x=t.leit.pesagemTara,y=t.leit.pesagemBruta;t.leit.pesagemTara=y;t.leit.pesagemBruta=x;t.qtd1=null;afterApply(t)});break;
       case'del':if(await confirmBox('Excluir esta operação e as fotos? Esta ação não pode ser desfeita.','Excluir')){await deleteTicket(id);go('novo');toast('Operação excluída.')}break;
+      case'proof':downloadProof(id);break;
       case'copy-sum':copy(summaryText(S.tickets[id]),'sum');break;
       case'copy-pack':{const t=S.tickets[id],w=k.endsWith('2')?'2':'1',kind=STEPS[k].kind;copy(pkgText(kind==='mtr'?'DADOS PARA EMISSÃO DO MTR':'DADOS PARA EMISSÃO DA NF-e',kind==='mtr'?pkgMTR(t,w):pkgNF(t,w)),'pk'+k);break}
       case'copy-row':{const t=S.tickets[id],w=k.endsWith('2')?'2':'1',rows=STEPS[k].kind==='mtr'?pkgMTR(t,w):pkgNF(t,w);copy(rows[+el.dataset.i][1],'pk'+k+el.dataset.i);break}
